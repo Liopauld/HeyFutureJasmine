@@ -1,0 +1,519 @@
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nakama Capsule — Seal Your Treasure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --ocean:#0B1D2E;--deep:#070F1A;--grand-line:#1A3A5C;
+  --gold:#F5C518;--gold-lt:#FFD966;--gold-dk:#C9920A;
+  --red:#D4302F;--parchment:#F5EACF;--parch-dk:#DFC9A0;
+  --ink:#2C1A0E;--txt:#F0E6D3;--txt2:#9BB5C8;--txt3:#5A7A90;
+  --r8:8px;--r16:16px;--r24:24px;--mw:1180px;--nh:70px
+}
+body{font-family:'DM Sans',sans-serif;background:var(--deep);color:var(--txt);overflow-x:hidden;line-height:1.6}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--deep)}
+::-webkit-scrollbar-thumb{background:var(--grand-line);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dk)}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:999;height:var(--nh);display:flex;align-items:center;padding:0 2rem;
+  background:rgba(7,15,26,.85);backdrop-filter:blur(14px);border-bottom:1px solid rgba(245,197,24,.1);transition:.3s}
+.ni{max-width:var(--mw);width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:9px;font-family:'Pirata One',cursive;font-size:1.45rem;color:var(--gold);
+  text-decoration:none;filter:drop-shadow(0 0 8px rgba(245,197,24,.35))}
+.nav-links{display:flex;gap:2.2rem;list-style:none}
+.nav-links a{font-size:.8rem;font-weight:500;color:var(--txt2);text-decoration:none;letter-spacing:.06em;
+  text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--gold)}
+.nav-btns{display:flex;gap:.8rem;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.2rem;border-radius:var(--r8);
+  font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .25s;
+  border:none;text-decoration:none;white-space:nowrap}
+.btn-ghost{background:transparent;color:var(--txt);border:1px solid rgba(240,230,211,.2)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--deep);
+  box-shadow:0 2px 16px rgba(245,197,24,.3)}
+.btn-gold:hover{box-shadow:0 4px 28px rgba(245,197,24,.55);transform:translateY(-1px)}
+.btn-red{background:linear-gradient(135deg,var(--red),#9a1e1e);color:#fff;
+  box-shadow:0 2px 16px rgba(212,48,47,.35)}
+.btn-red:hover{box-shadow:0 4px 28px rgba(212,48,47,.55);transform:translateY(-2px)}
+.btn-lg{padding:.85rem 1.9rem;font-size:.95rem;border-radius:var(--r16)}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;overflow:hidden;background:var(--deep);padding-top:var(--nh)}
+#star-c{position:absolute;top:0;left:0;width:100%;height:75%;pointer-events:none}
+.moon{position:absolute;top:9%;right:10%;width:88px;height:88px;border-radius:50%;
+  background:radial-gradient(circle at 38% 38%,#FFF9E5,#F0CF50,#C9990F);
+  box-shadow:0 0 40px rgba(240,200,60,.5),0 0 90px rgba(240,200,60,.2),0 0 130px rgba(240,200,60,.08),
+  inset -10px -10px 22px rgba(80,50,0,.3)}
+.compass{position:absolute;top:12%;left:6%;width:72px;height:72px;opacity:.1;animation:spin 28s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero-content{position:relative;z-index:10;text-align:center;max-width:740px;padding:0 2rem 7rem}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(245,197,24,.08);
+  border:1px solid rgba(245,197,24,.25);border-radius:100px;padding:.35rem 1rem;
+  font-size:.72rem;font-weight:600;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.4rem}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)}}
+.hero-h{font-family:'Pirata One',cursive;font-size:clamp(2.8rem,7.5vw,5.8rem);line-height:1.06;
+  letter-spacing:.02em;margin-bottom:1.2rem;
+  background:linear-gradient(170deg,var(--gold-lt) 0%,var(--gold) 45%,var(--gold-dk) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 36px rgba(245,197,24,.2))}
+.hero-p{font-family:'Crimson Pro',Georgia,serif;font-size:clamp(1.05rem,2.4vw,1.3rem);
+  color:var(--txt2);line-height:1.75;margin-bottom:2.4rem;font-style:italic}
+.hero-btns{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap}
+.ocean-wrap{position:absolute;bottom:0;left:0;right:0;height:230px}
+.ship{position:absolute;bottom:105px;left:13%;width:115px;z-index:5;animation:bob 4.5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-.5deg)}30%{transform:translateY(-9px) rotate(1deg)}70%{transform:translateY(5px) rotate(-1.5deg)}}
+.waves-svg{position:absolute;bottom:0;left:0;width:200%;height:230px}
+.w1{fill:#0E2238;animation:wm 9s linear infinite}
+.w2{fill:#0B1D2E;opacity:.92;animation:wm 13s linear infinite reverse}
+.w3{fill:#091626;opacity:.97;animation:wm 17s linear infinite}
+@keyframes wm{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* SECTIONS */
+.sec{padding:6rem 2rem}
+.sec-label{font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem}
+.sec-title{font-family:'Pirata One',cursive;font-size:clamp(1.9rem,4vw,2.9rem);color:var(--txt);margin-bottom:.5rem}
+.sec-sub{font-family:'Crimson Pro',serif;font-size:1.05rem;color:var(--txt2);font-style:italic}
+.sec-hdr{text-align:center;margin-bottom:3.5rem}
+
+/* HOW IT WORKS */
+.how{background:var(--ocean)}
+.steps{max-width:var(--mw);margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);
+  gap:0;position:relative}
+.steps::before{content:'';position:absolute;top:56px;left:calc(16.7% + 4px);right:calc(16.7% + 4px);
+  height:0;border-top:2px dashed rgba(245,197,24,.3);z-index:0}
+.step{text-align:center;padding:2rem 1.5rem;position:relative;z-index:1;
+  opacity:0;transform:translateY(28px);transition:opacity .6s,transform .6s}
+.step.vis{opacity:1;transform:translateY(0)}
+.step:nth-child(2){transition-delay:.15s}.step:nth-child(3){transition-delay:.3s}
+.step-ico{width:110px;height:110px;border-radius:50%;
+  background:linear-gradient(145deg,var(--grand-line),var(--ocean));
+  border:2px solid rgba(245,197,24,.28);display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.4rem;font-size:2.7rem;position:relative;transition:.3s;
+  box-shadow:0 0 0 rgba(245,197,24,0)}
+.step:hover .step-ico{border-color:var(--gold);box-shadow:0 0 28px rgba(245,197,24,.18);transform:scale(1.05)}
+.step-num{position:absolute;top:-4px;right:-4px;width:26px;height:26px;border-radius:50%;
+  background:var(--gold);color:var(--deep);font-family:'DM Sans',sans-serif;font-weight:700;
+  font-size:.75rem;display:flex;align-items:center;justify-content:center}
+.step-t{font-family:'Pirata One',cursive;font-size:1.45rem;color:var(--gold);margin-bottom:.6rem}
+.step-d{font-family:'Crimson Pro',serif;font-size:.97rem;color:var(--txt2);line-height:1.75}
+
+/* FEATURES */
+.feats-bg{background:var(--deep)}
+.feats{max-width:var(--mw);margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem}
+.fc{background:linear-gradient(145deg,rgba(26,58,92,.85),rgba(26,58,92,.4));
+  border:1px solid rgba(245,197,24,.1);border-radius:var(--r16);padding:1.8rem;
+  display:flex;flex-direction:column;gap:1rem;transition:all .3s;
+  opacity:0;transform:translateY(20px)}
+.fc.vis{opacity:1;transform:translateY(0)}
+.fc:hover{border-color:rgba(245,197,24,.35);box-shadow:0 8px 32px rgba(245,197,24,.07);transform:translateY(-4px)}
+.fc-ico{font-size:2rem;width:52px;height:52px;min-width:52px;border-radius:12px;
+  background:rgba(245,197,24,.1);display:flex;align-items:center;justify-content:center}
+.fc h3{font-family:'Pirata One',cursive;font-size:1.15rem;color:var(--gold)}
+.fc p{font-family:'Crimson Pro',serif;font-size:.93rem;color:var(--txt2);line-height:1.75}
+
+/* LETTERS */
+.nb-bg{background:linear-gradient(180deg,var(--ocean) 0%,#091624 100%)}
+.letters{max-width:var(--mw);margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem}
+.lc{background:var(--parchment);border-radius:var(--r16);padding:1.7rem;position:relative;
+  box-shadow:4px 6px 20px rgba(0,0,0,.45),inset 0 0 60px rgba(160,110,30,.08);
+  border:1px solid var(--parch-dk);overflow:hidden;cursor:default;
+  opacity:0;transform:translateY(28px) rotate(var(--r,0deg));transition:opacity .6s,transform .5s,box-shadow .3s}
+.lc:nth-child(1){--r:-1.5deg;transition-delay:0s}
+.lc:nth-child(2){--r:.5deg;transition-delay:.1s}
+.lc:nth-child(3){--r:1deg;transition-delay:.2s}
+.lc.vis{opacity:1;transform:translateY(0) rotate(var(--r,0deg))}
+.lc:hover{transform:translateY(-7px) rotate(0deg) !important;box-shadow:8px 18px 44px rgba(0,0,0,.5)}
+.lc::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 15%,rgba(170,120,30,.08) 0%,transparent 55%),
+  radial-gradient(ellipse at 85% 85%,rgba(100,60,10,.07) 0%,transparent 55%);pointer-events:none}
+.lh{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:.9rem;padding-bottom:.8rem;border-bottom:1px solid var(--parch-dk)}
+.lf-from{font-family:'Pirata One',cursive;font-size:.9rem;color:var(--red)}
+.lf-date{font-family:'DM Sans',sans-serif;font-size:.68rem;font-weight:600;color:var(--ink);opacity:.45;
+  text-transform:uppercase;letter-spacing:.05em}
+.lb{font-family:'Crimson Pro',serif;font-size:.88rem;color:var(--ink);line-height:1.82;margin-bottom:1rem;
+  position:relative}
+.lb p+p{margin-top:.3rem}
+.lb.blur::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 25%,var(--parchment) 75%)}
+.seal-badge{display:flex;align-items:center;justify-content:center;gap:.45rem;padding:.5rem;
+  background:rgba(44,26,14,.07);border:1px dashed rgba(44,26,14,.2);border-radius:var(--r8);
+  font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:600;
+  color:rgba(44,26,14,.48);text-transform:uppercase;letter-spacing:.07em}
+.lft{display:flex;align-items:center;justify-content:space-between;margin-top:.9rem;
+  padding-top:.7rem;border-top:1px solid var(--parch-dk)}
+.l-travel{font-family:'DM Sans',sans-serif;font-size:.7rem;color:rgba(44,26,14,.45)}
+.l-like{display:flex;align-items:center;gap:.25rem;font-family:'DM Sans',sans-serif;
+  font-size:.75rem;color:rgba(44,26,14,.45);cursor:pointer;transition:color .2s}
+.l-like:hover{color:var(--red)}
+.nb-cta{text-align:center;margin-top:2.8rem}
+
+/* STATS */
+.stats-bg{background:var(--deep);border-top:1px solid rgba(245,197,24,.07);border-bottom:1px solid rgba(245,197,24,.07)}
+.stats{max-width:var(--mw);margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);
+  padding:4.5rem 2rem}
+.st{text-align:center;padding:1.5rem;position:relative}
+.st:not(:last-child)::after{content:'';position:absolute;right:0;top:20%;bottom:20%;
+  width:1px;background:rgba(245,197,24,.13)}
+.sn{font-family:'Pirata One',cursive;font-size:clamp(2rem,4vw,3.2rem);color:var(--gold);
+  display:block;margin-bottom:.2rem;filter:drop-shadow(0 0 10px rgba(245,197,24,.3))}
+.sl{font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--txt3);
+  text-transform:uppercase;letter-spacing:.09em}
+
+/* CTA */
+.cta-sec{padding:8rem 2rem;background:linear-gradient(180deg,#091624 0%,var(--ocean) 50%,var(--deep) 100%);
+  text-align:center;position:relative;overflow:hidden}
+.cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:600px;height:300px;
+  background:radial-gradient(ellipse,rgba(245,197,24,.05) 0%,transparent 70%);pointer-events:none}
+.cta-sec h2{font-family:'Pirata One',cursive;font-size:clamp(2.2rem,5vw,4rem);
+  color:var(--txt);margin-bottom:.9rem;position:relative;line-height:1.1}
+.cta-sec h2 em{color:var(--gold);font-style:normal}
+.cta-sec p{font-family:'Crimson Pro',serif;font-size:1.15rem;color:var(--txt2);
+  margin-bottom:2.4rem;font-style:italic}
+
+/* FOOTER */
+footer{background:var(--deep);border-top:1px solid rgba(245,197,24,.08);padding:3rem 2rem}
+.fi{max-width:var(--mw);margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:3rem}
+.fb p{font-family:'Crimson Pro',serif;font-size:.93rem;color:var(--txt3);
+  margin-top:.7rem;font-style:italic;line-height:1.75}
+.fcol h4{font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:.9rem}
+.fcol ul{list-style:none;display:flex;flex-direction:column;gap:.55rem}
+.fcol ul a{font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--txt3);text-decoration:none;transition:color .2s}
+.fcol ul a:hover{color:var(--txt)}
+.fb2{max-width:var(--mw);margin:1.75rem auto 0;padding-top:1.3rem;
+  border-top:1px solid rgba(240,230,211,.07);
+  display:flex;align-items:center;justify-content:space-between}
+.fb2 p{font-family:'DM Sans',sans-serif;font-size:.77rem;color:var(--txt3)}
+
+/* ANIMATIONS */
+.fu{opacity:0;transform:translateY(28px);transition:opacity .6s,transform .6s}
+.fu.vis{opacity:1;transform:translateY(0)}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  .steps,.feats,.letters,.stats,.fi{grid-template-columns:1fr}
+  .steps::before,.st::after{display:none}
+  .feats{grid-template-columns:repeat(2,1fr)}
+  .nav-links{display:none}
+}
+@media(max-width:580px){
+  .feats{grid-template-columns:1fr}
+  .hero-btns{flex-direction:column;align-items:stretch}
+  .hero-btns .btn{text-align:center;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+<div class="ni">
+  <a href="#" class="logo">⚓ Nakama Capsule</a>
+  <ul class="nav-links">
+    <li><a href="#how">The Voyage</a></li>
+    <li><a href="#feats">Features</a></li>
+    <li><a href="#noticeboard">Noticeboard</a></li>
+  </ul>
+  <div class="nav-btns">
+    <a href="#" class="btn btn-ghost">Sign In</a>
+    <a href="#" class="btn btn-gold">Write a Letter</a>
+  </div>
+</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+<canvas id="star-c"></canvas>
+<div class="moon"></div>
+
+<svg class="compass" viewBox="0 0 100 100" fill="none">
+  <circle cx="50" cy="50" r="48" stroke="#F5C518" stroke-width="1"/>
+  <circle cx="50" cy="50" r="36" stroke="#F5C518" stroke-width=".4"/>
+  <polygon points="50,2 54,47 50,40 46,47" fill="#F5C518"/>
+  <polygon points="50,98 54,53 50,60 46,53" fill="#9BB5C8"/>
+  <polygon points="2,50 47,46 40,50 47,54" fill="#9BB5C8"/>
+  <polygon points="98,50 53,46 60,50 53,54" fill="#F5C518"/>
+  <text x="50" y="17" text-anchor="middle" fill="#F5C518" font-size="9" font-family="serif" font-weight="bold">N</text>
+  <text x="50" y="93" text-anchor="middle" fill="#9BB5C8" font-size="9" font-family="serif">S</text>
+  <text x="90" y="54" text-anchor="middle" fill="#F5C518" font-size="9" font-family="serif">E</text>
+  <text x="10" y="54" text-anchor="middle" fill="#9BB5C8" font-size="9" font-family="serif">W</text>
+  <circle cx="50" cy="50" r="4" fill="#F5C518"/>
+</svg>
+
+<div class="hero-content">
+  <div class="badge"><span class="dot"></span>The Grand Line of Time</div>
+  <h1 class="hero-h">Seal Your Words.<br>Let the Tides Carry Them.</h1>
+  <p class="hero-p">Write a letter to your future self or a nakama. Lock it in a treasure chest.<br>We'll deliver it when the tides are finally right.</p>
+  <div class="hero-btns">
+    <a href="#" class="btn btn-gold btn-lg">🔮 &nbsp;Seal a Letter</a>
+    <a href="#noticeboard" class="btn btn-ghost btn-lg">🗺️ &nbsp;Explore Noticeboard</a>
+  </div>
+</div>
+
+<div class="ocean-wrap">
+  <div class="ship">
+    <svg viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12,64 L22,84 L118,84 L128,64 L70,59 Z" fill="#150800" stroke="#3A1800" stroke-width="1"/>
+      <path d="M22,84 Q70,96 118,84" fill="#1F0D00" stroke="#3A1800" stroke-width=".6"/>
+      <rect x="26" y="57" width="88" height="8" rx="2" fill="#1F0D00"/>
+      <line x1="50" y1="57" x2="50" y2="8" stroke="#3A1800" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="84" y1="57" x2="84" y2="3" stroke="#3A1800" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M50,10 L50,52 L28,41 Z" fill="#F5EACF" opacity=".92"/>
+      <path d="M84,5 L84,54 L57,43 Z" fill="#F5EACF" opacity=".92"/>
+      <circle cx="74" cy="30" r="7" fill="#0B1D2E"/>
+      <text x="74" y="34" text-anchor="middle" font-size="8" fill="#F5EACF">☠</text>
+      <polygon points="84,3 84,14 96,8" fill="#D4302F"/>
+      <rect x="80" y="17" width="8" height="6" rx="1" fill="#1F0D00"/>
+      <circle cx="12" cy="64" r="5" fill="#F5C518"/>
+      <line x1="40" y1="84" x2="40" y2="92" stroke="#3A1800" stroke-width="1"/>
+      <line x1="70" y1="84" x2="70" y2="95" stroke="#3A1800" stroke-width="1"/>
+      <line x1="100" y1="84" x2="100" y2="92" stroke="#3A1800" stroke-width="1"/>
+    </svg>
+  </div>
+  <svg class="waves-svg" viewBox="0 0 2880 230" preserveAspectRatio="none">
+    <path class="w3" d="M0,145 C250,105 500,165 750,135 C1000,105 1250,155 1500,128 C1750,100 2000,155 2250,135 C2500,115 2700,145 2880,128 L2880,230 L0,230 Z"/>
+    <path class="w2" d="M0,155 C210,125 480,172 720,150 C960,128 1200,163 1440,145 C1680,127 1920,158 2160,145 C2400,132 2650,153 2880,140 L2880,230 L0,230 Z"/>
+    <path class="w1" d="M0,168 C190,143 390,182 720,162 C1050,142 1210,170 1440,158 C1670,146 1930,166 2160,158 C2390,150 2680,165 2880,157 L2880,230 L0,230 Z"/>
+  </svg>
+</div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="sec how" id="how">
+<div class="sec-hdr fu">
+  <p class="sec-label">⚓ The Voyage</p>
+  <h2 class="sec-title">Three Steps to Set Sail</h2>
+  <p class="sec-sub">Simple as tying a message to a bottle — but far more reliable.</p>
+</div>
+<div class="steps">
+  <div class="step">
+    <div class="step-ico">🪶<span class="step-num">1</span></div>
+    <h3 class="step-t">Write Your Letter</h3>
+    <p class="step-d">Pour your heart onto the parchment. Memories, dreams, goals, a message for someone dear. The pen is yours, Captain.</p>
+  </div>
+  <div class="step">
+    <div class="step-ico">🧭<span class="step-num">2</span></div>
+    <h3 class="step-t">Chart Your Destination</h3>
+    <p class="step-d">Set the date your treasure arrives — 6 months, a year, a decade, or any point on the Grand Line you choose.</p>
+  </div>
+  <div class="step">
+    <div class="step-ico">🏴‍☠️<span class="step-num">3</span></div>
+    <h3 class="step-t">Discover the Treasure</h3>
+    <p class="step-d">On the appointed day, the chest unlocks. Your treasure washes ashore — a message through time, finally delivered.</p>
+  </div>
+</div>
+</section>
+
+<!-- FEATURES -->
+<section class="sec feats-bg" id="feats">
+<div class="sec-hdr fu">
+  <p class="sec-label">🗺️ What's In the Chest</p>
+  <h2 class="sec-title">A Ship Built for the Journey</h2>
+  <p class="sec-sub">Every tool a seasoned letter-writer needs to navigate the tides of time.</p>
+</div>
+<div class="feats">
+  <div class="fc"><div class="fc-ico">📦</div><h3>Treasure Chest Themes</h3><p>Choose your vessel — classic oak, golden celestial, Davy Jones' dark chest, or the Alabasta sandstone ark. Your letter, your aesthetic.</p></div>
+  <div class="fc"><div class="fc-ico">👥</div><h3>Write to Your Crew</h3><p>Send letters to your nakama — friends, family, a future stranger. Save them as crew members and sail through time together.</p></div>
+  <div class="fc"><div class="fc-ico">🖼️</div><h3>Attach Memories</h3><p>Tuck images and files inside your capsule. Photos of today become irreplaceable artifacts tomorrow.</p></div>
+  <div class="fc"><div class="fc-ico">🗺️</div><h3>Public Noticeboard</h3><p>Share anonymously on the Pirate's Noticeboard. Let the world find your words and feel inspired to write their own.</p></div>
+  <div class="fc"><div class="fc-ico">🔔</div><h3>Den Den Mushi Alerts</h3><p>Get notified when your treasure nears shore. No letter goes adrift — we track every capsule across the Grand Line.</p></div>
+  <div class="fc"><div class="fc-ico">⚔️</div><h3>Pirate Rank System</h3><p>Earn your bounty with every letter sealed. Rise from Landlubber to Pirate King and claim your name in the Captain's Log of legends.</p></div>
+</div>
+</section>
+
+<!-- NOTICEBOARD PREVIEW -->
+<section class="sec nb-bg" id="noticeboard">
+<div class="sec-hdr fu">
+  <p class="sec-label">📋 Pirate's Noticeboard</p>
+  <h2 class="sec-title">Letters from the Grand Line</h2>
+  <p class="sec-sub">Anonymous letters, real hearts. Read what others sealed for the future.</p>
+</div>
+<div class="letters">
+  <div class="lc">
+    <div class="lh">
+      <span class="lf-from">⚓ Ghost of Loguetown</span>
+      <span class="lf-date">3 years at sea</span>
+    </div>
+    <div class="lb">
+      <p>Dear Future Me,</p>
+      <p>By the time you read this, I hope you've finally made it to the sea you always dreamed of. Not the literal sea — you know which one I mean. The one where mornings feel like yours again...</p>
+    </div>
+    <div class="lft">
+      <span class="l-travel">🚢 Sailed 2019 → 2022</span>
+      <span class="l-like">🔱 147</span>
+    </div>
+  </div>
+
+  <div class="lc">
+    <div class="lh">
+      <span class="lf-from">🏴‍☠️ Shadow of Marineford</span>
+      <span class="lf-date">Still sailing...</span>
+    </div>
+    <div class="lb blur">
+      <p>Dear Nakama,</p>
+      <p>If you're reading this, something extraordinary must have happened. Something I never believed possible in the winter of 2024, when everything felt so impossibly far away from shore...</p>
+    </div>
+    <div class="seal-badge">🔒 &nbsp;Opens in 547 days</div>
+    <div class="lft">
+      <span class="l-travel">🚢 Sailing 2024 → 2026</span>
+      <span class="l-like">🔱 93</span>
+    </div>
+  </div>
+
+  <div class="lc">
+    <div class="lh">
+      <span class="lf-from">⭐ Star of Alabasta</span>
+      <span class="lf-date">5 years at sea</span>
+    </div>
+    <div class="lb">
+      <p>To whoever I am now,</p>
+      <p>I sealed this letter in the middle of everything falling apart. A reminder that even the darkest nights eventually give way to a sea full of stars. You made it. You always were going to.</p>
+    </div>
+    <div class="lft">
+      <span class="l-travel">🚢 Sailed 2018 → 2023</span>
+      <span class="l-like">🔱 312</span>
+    </div>
+  </div>
+</div>
+<div class="nb-cta fu">
+  <a href="#" class="btn btn-ghost btn-lg">Explore All Letters &nbsp;→</a>
+</div>
+</section>
+
+<!-- STATS -->
+<section class="stats-bg">
+<div class="stats">
+  <div class="st fu"><span class="sn" data-n="128459">0</span><span class="sl">Letters Sealed</span></div>
+  <div class="st fu" style="transition-delay:.1s"><span class="sn" data-n="84">0</span><span class="sl">Countries Reached</span></div>
+  <div class="st fu" style="transition-delay:.2s"><span class="sn" data-n="50322">0</span><span class="sl">Nakama Connected</span></div>
+  <div class="st fu" style="transition-delay:.3s"><span class="sn" data-n="99" data-suf="%">0</span><span class="sl">Delivered On Time</span></div>
+</div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-sec">
+<div class="cta-glow"></div>
+<div class="fu">
+  <h2>Your Adventure Begins<br>With a <em>Single Letter</em></h2>
+  <p>Write to who you'll become. The tides will do the rest.</p>
+  <a href="#" class="btn btn-red btn-lg">🏴‍☠️ &nbsp;Set Sail — It's Free</a>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="fi">
+  <div class="fb">
+    <a href="#" class="logo" style="filter:none">⚓ Nakama Capsule</a>
+    <p>Seal your words. Set them sail.<br>Let the tides of time carry them to where they need to be.</p>
+  </div>
+  <div class="fcol">
+    <h4>Navigate</h4>
+    <ul>
+      <li><a href="#">Write a Letter</a></li>
+      <li><a href="#">Public Noticeboard</a></li>
+      <li><a href="#">Captain's Log</a></li>
+      <li><a href="#">Pirate Ranks</a></li>
+    </ul>
+  </div>
+  <div class="fcol">
+    <h4>The Ship</h4>
+    <ul>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Privacy</a></li>
+      <li><a href="#">Terms</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </div>
+</div>
+<div class="fb2">
+  <p>© 2025 Nakama Capsule — Built with ❤️ and the Will of D.</p>
+  <p>⚓ · 🏴‍☠️ · 🧭</p>
+</div>
+</footer>
+
+<script>
+(function(){
+// STARS
+const c=document.getElementById('star-c');
+const ctx=c.getContext('2d');
+function resize(){
+  c.width=window.innerWidth;c.height=window.innerHeight*.75;draw();
+}
+function draw(){
+  ctx.clearRect(0,0,c.width,c.height);
+  const n=Math.floor(c.width*c.height/3800);
+  for(let i=0;i<n;i++){
+    const x=Math.random()*c.width,y=Math.random()*c.height;
+    const r=Math.random()*1.4+.2,a=Math.random()*.65+.2;
+    const warm=Math.random()>.65;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=warm?`rgba(255,238,168,${a})`:`rgba(195,225,255,${a})`;
+    ctx.fill();
+  }
+  for(let i=0;i<7;i++){
+    const x=Math.random()*c.width,y=Math.random()*c.height*.65;
+    const g=ctx.createRadialGradient(x,y,0,x,y,5);
+    g.addColorStop(0,'rgba(255,248,210,.9)');g.addColorStop(1,'rgba(255,248,210,0)');
+    ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+  }
+}
+resize();window.addEventListener('resize',resize);
+setInterval(()=>{draw();},3200);
+
+// INTERSECTION OBSERVER
+const obs=new IntersectionObserver(en=>{
+  en.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')});
+},{threshold:.13});
+document.querySelectorAll('.fu,.step,.fc,.lc').forEach(el=>obs.observe(el));
+
+// COUNTERS
+const cobs=new IntersectionObserver(en=>{
+  en.forEach(e=>{
+    if(!e.isIntersecting)return;
+    const el=e.target,t=parseInt(el.dataset.n),suf=el.dataset.suf||'+';
+    const dur=1800,step=t/(dur/16);let cur=0;
+    const tim=setInterval(()=>{
+      cur=Math.min(cur+step,t);
+      el.textContent=Math.floor(cur).toLocaleString()+suf;
+      if(cur>=t){clearInterval(tim);el.textContent=t.toLocaleString()+suf;}
+    },16);
+    cobs.unobserve(el);
+  });
+},{threshold:.5});
+document.querySelectorAll('[data-n]').forEach(el=>cobs.observe(el));
+
+// NAVBAR SCROLL
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  const s=window.scrollY>50;
+  nav.style.background=s?'rgba(7,15,26,.97)':'rgba(7,15,26,.85)';
+  nav.style.boxShadow=s?'0 4px 28px rgba(0,0,0,.45)':'none';
+});
+
+// LIKE BUTTONS
+document.querySelectorAll('.l-like').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const parts=b.textContent.split(' '),num=parseInt(parts[1]||0);
+    b.textContent='🔱 '+(num+1);b.style.color='#D4302F';
+    setTimeout(()=>{b.style.color='';},1200);
+  });
+});
+})();
+</script>
+</body>
+</html>

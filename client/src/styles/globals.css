@@ -1,0 +1,102 @@
+@import url("https://fonts.googleapis.com/css2?family=Pirata+One&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-ocean: #0b1d2e;
+  --color-deep-sea: #071322;
+  --color-grand-line: #1a3a5c;
+  --color-gold: #f5c518;
+  --color-gold-light: #ffd966;
+  --color-gold-dark: #c9920a;
+  --color-straw-red: #d4302f;
+  --color-parchment: #f7ecd8;
+  --color-parchment-dark: #e8d5b0;
+  --color-ink: #2c1a0e;
+  --color-sealed: #5b7fa6;
+  --color-sailing: #f5c518;
+  --color-delivered: #3cb043;
+  --color-failed: #d4302f;
+  --color-text-primary: #f0e6d3;
+  --color-text-secondary: #9bb5c8;
+  --color-text-muted: #5a7a90;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ocean);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Decorative One Piece themed additions */
+.ocean-waves {
+  background: radial-gradient(ellipse at bottom, rgba(255,255,255,0.02), transparent 40%),
+    linear-gradient(180deg, rgba(11,29,46,0.9), rgba(7,19,34,0.95));
+  position: relative;
+  overflow: hidden;
+}
+
+.wave-anim {
+  position: absolute;
+  left: -50%;
+  right: -50%;
+  height: 200%;
+  top: -50%;
+  background: url('/assets/wave.svg') repeat-x;
+  opacity: 0.06;
+  animation: waveMove 18s linear infinite;
+}
+
+@keyframes waveMove {
+  from { transform: translateX(0); }
+  to { transform: translateX(50%); }
+}
+
+.parchment-area {
+  background: linear-gradient(180deg, var(--color-parchment) 0%, #f3e8cf 100%);
+  border: 1px solid var(--color-parchment-dark);
+  box-shadow: inset 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.wax-seal {
+  display: inline-block;
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a 60%);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(201,42,42,0.35), 0 2px 0 rgba(0,0,0,0.12) inset;
+  transform-origin: center;
+}
+
+.wax-seal.pulse {
+  animation: waxPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes waxPulse {
+  0% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.04) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+.treasure-hero {
+  background-image: radial-gradient(ellipse at top left, rgba(245,197,24,0.06), transparent 10%), url('/assets/map-texture.svg');
+  background-size: cover;
+  border-radius: 20px;
+}
+
+.map-card {
+  background-image: linear-gradient(180deg, rgba(7,19,34,0.9), rgba(26,58,92,0.85)), url('/assets/map-texture.svg');
+  background-size: cover;
+  background-blend-mode: overlay;
+}
+
+.wanted-poster {
+  background: linear-gradient(180deg, #fff6ea, #f0e1c4);
+  border: 2px dashed #c9920a;
+  padding: 20px;
+}

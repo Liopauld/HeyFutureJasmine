@@ -38,6 +38,13 @@ app.use("/api/letters", letterRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/users", userRoutes);
 
+// Dev-only helpers (force-deliver / trigger sweep) — never in production.
+if (process.env.ENABLE_DEV_ROUTES === "true" && process.env.NODE_ENV !== "production") {
+  const { default: devRoutes } = await import("./routes/dev.js");
+  app.use("/api/dev", devRoutes);
+  console.log("Dev routes enabled at /api/dev");
+}
+
 app.use(errorHandler);
 
 export default app;

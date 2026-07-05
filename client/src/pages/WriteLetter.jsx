@@ -1,170 +1,189 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { MapPin, CalendarClock, Paperclip, Package } from "lucide-react";
 import api from "../lib/api.js";
+import { useAuth } from "../hooks/useAuth.js";
+import { useCreateLetter } from "../hooks/useLetters.js";
+import { formatDate } from "../lib/dates.js";
+import RichTextEditor from "../components/letter/RichTextEditor.jsx";
+import RecipientPicker from "../components/letter/RecipientPicker.jsx";
+import DeliveryDatePicker from "../components/letter/DeliveryDatePicker.jsx";
+import PhotoDropzone from "../components/letter/PhotoDropzone.jsx";
+import VoiceRecorder from "../components/letter/VoiceRecorder.jsx";
+import SongInput from "../components/letter/SongInput.jsx";
+import ChestThemePicker from "../components/letter/ChestThemePicker.jsx";
 import WaxSealButton from "../components/ui/WaxSealButton.jsx";
+
+function Section({ label, hint, children }) {
+  return (
+    <section className="rounded-3xl border border-grand-line bg-deep-sea/50 p-5 sm:p-6">
+      <div className="mb-4">
+        <h2 className="font-display text-xl text-gold">{label}</h2>
+        {hint ? <p className="text-sm text-text-muted">{hint}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+const stripHtml = (html) => html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
 
 export default function WriteLetter() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    subject: "A Treasure From Your Past",
-    recipientEmail: "",
-    recipientName: "",
-    deliveryDate: "",
-    body: "",
-    visibility: "private",
-    capsuleTheme: "default",
-    isSelfLetter: true
-  });
-  const [isSaving, setIsSaving] = useState(false);
+  const location = useLocation();
+  const { user, partner } = useAuth();
+  const create = useCreateLetter();
 
-  const updateField = (field) => (event) => {
-    setForm((current) => ({
-      ...current,
-      [field]: event.target.value
-    }));
+  const [form, setForm] = useState({
+    letterType: "self",
+    subject: "",
+    body: "",
+    deliveryDate: "",
+    capsuleTheme: "default"
+  });
+  const [attachments, setAttachments] = useState([]);
+  const [song, setSong] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
+
+  // "Write back across time" hands off a letter to reply to.
+  useEffect(() => {
+    const s = location.state;
+    if (s?.replyTo) {
+      setReplyTo(s.replyTo);
+      if (s.letterType) setForm((f) => ({ ...f, letterType: s.letterType }));
+    }
+  }, [location.state]);
+
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const photos = useMemo(() => attachments.filter((a) => a.kind === "photo"), [attachments]);
+  const voice = useMemo(() => attachments.find((a) => a.kind === "voice"), [attachments]);
+
+  const addAttachment = (att) => setAttachments((a) => [...a, att]);
+  const removeAttachment = (id) => {
+    setAttachments((a) => a.filter((x) => x._id !== id));
+    api.delete(`/uploads/${id}`).catch(() => {});
   };
+
+  const recipientLabel =
+    form.letterType === "self"
+      ? "Your future self"
+      : form.letterType === "us"
+        ? "Both of you"
+        : partner?.displayName || partner?.username || "Your partner";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsSaving(true);
+    if (!stripHtml(form.body)) return toast.error("Your letter needs some words, Captain.");
+    if (!form.deliveryDate) return toast.error("Chart a destination date first.");
+    if (form.letterType !== "self" && !partner) return toast.error("Pair with your partner first.");
+
     try {
-      const payload = {
-        ...form,
-        deliveryDate: new Date(form.deliveryDate).toISOString(),
-        recipientEmail: form.isSelfLetter ? "" : form.recipientEmail
-      };
-      const { data } = await api.post("/letters", payload);
+      await create.mutateAsync({
+        letterType: form.letterType,
+        subject: form.subject || undefined,
+        body: form.body,
+        deliveryDate: form.deliveryDate,
+        capsuleTheme: form.capsuleTheme,
+        attachments: attachments.map((a) => a._id),
+        song: song || undefined,
+        replyTo: replyTo || undefined
+      });
       toast.success("Your treasure is sealed and sailing the Grand Line!");
-      navigate(`/treasure/${data.letter._id}`);
+      navigate("/log");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Taken by the sea...");
-    } finally {
-      setIsSaving(false);
+      toast.error(error.response?.data?.message || "Taken by the sea…");
     }
   };
 
   return (
-    <form className="space-y-8" onSubmit={handleSubmit}>
-      <header>
-        <p className="text-sm uppercase tracking-[0.2em] text-text-muted">Chart Your Destination</p>
-        <h1 className="font-display text-3xl text-gold">Write a Treasure Letter</h1>
+    <form onSubmit={handleSubmit}>
+      <header className="mb-6">
+        <p className="text-sm uppercase tracking-[0.2em] text-text-muted">Chart your destination</p>
+        <h1 className="font-display text-3xl text-gold sm:text-4xl">Write a Treasure Letter</h1>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-4 rounded-3xl parchment-area p-6 text-ink">
-          <label className="block">
-            <span className="text-sm font-semibold">Subject</span>
-            <input
-              className="mt-1 w-full rounded-xl border border-parchment-dark bg-white px-4 py-3 font-serif"
-              value={form.subject}
-              onChange={updateField("subject")}
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm font-semibold">Treasure Letter</span>
-            <textarea
-              className="mt-1 min-h-64 w-full rounded-xl border border-parchment-dark bg-white px-4 py-3 font-serif"
-              placeholder="Write your message to the future..."
-              value={form.body}
-              onChange={updateField("body")}
-              required
-            />
-          </label>
-        </div>
-
-        <div className="space-y-5 rounded-3xl border border-grand-line bg-deep-sea/70 p-6">
-          <div className="rounded-2xl border border-grand-line bg-ocean/60 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-text-muted">Grand Line Tracker</p>
-            <div className="mt-3 h-2 w-full rounded-full bg-grand-line">
-              <div className="h-full w-1/3 rounded-full bg-gold shadow-glow" />
+      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-5">
+          <Section label="The Letter">
+            <div className="parchment rounded-2xl p-5">
+              <input
+                value={form.subject}
+                onChange={(e) => set({ subject: e.target.value })}
+                placeholder="A Treasure From Your Past"
+                className="mb-3 w-full border-b border-parchment-dark bg-transparent pb-2 font-display text-2xl text-ink placeholder:text-ink/30 focus:outline-none"
+              />
+              <RichTextEditor value={form.body} onChange={(body) => set({ body })} />
             </div>
-            <p className="mt-2 text-xs text-text-secondary">Set your destination date to see the ship advance.</p>
-          </div>
-          <label className="block">
-            <span className="text-sm text-text-secondary">Recipient type</span>
-            <select
-              className="mt-1 w-full rounded-xl border border-grand-line bg-ocean px-4 py-3"
-              value={form.isSelfLetter ? "self" : "other"}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  isSelfLetter: event.target.value === "self"
-                }))
-              }
-            >
-              <option value="self">To myself</option>
-              <option value="other">To another nakama</option>
-            </select>
-          </label>
+          </Section>
 
-          {!form.isSelfLetter ? (
-            <>
-              <label className="block">
-                <span className="text-sm text-text-secondary">Recipient name</span>
-                <input
-                  className="mt-1 w-full rounded-xl border border-grand-line bg-ocean px-4 py-3"
-                  value={form.recipientName}
-                  onChange={updateField("recipientName")}
-                />
-              </label>
-              <label className="block">
-                <span className="text-sm text-text-secondary">Recipient email</span>
-                <input
-                  type="email"
-                  className="mt-1 w-full rounded-xl border border-grand-line bg-ocean px-4 py-3"
-                  value={form.recipientEmail}
-                  onChange={updateField("recipientEmail")}
-                  required
-                />
-              </label>
-            </>
-          ) : null}
-
-          <label className="block">
-            <span className="text-sm text-text-secondary">Delivery date</span>
-            <input
-              type="date"
-              className="mt-1 w-full rounded-xl border border-grand-line bg-ocean px-4 py-3"
-              value={form.deliveryDate}
-              onChange={updateField("deliveryDate")}
-              required
+          <Section label="Who is it for?">
+            <RecipientPicker
+              value={form.letterType}
+              onChange={(letterType) => set({ letterType })}
+              partner={partner}
             />
-          </label>
+          </Section>
 
-          <label className="block">
-            <span className="text-sm text-text-secondary">Visibility</span>
-            <select
-              className="mt-1 w-full rounded-xl border border-grand-line bg-ocean px-4 py-3"
-              value={form.visibility}
-              onChange={updateField("visibility")}
-            >
-              <option value="private">Private</option>
-              <option value="public_anonymous">Public anonymous</option>
-              <option value="public_named">Public named</option>
-            </select>
-          </label>
+          <Section label="When should it arrive?">
+            <DeliveryDatePicker
+              value={form.deliveryDate}
+              onChange={(deliveryDate) => set({ deliveryDate })}
+              anniversary={user?.anniversary}
+            />
+          </Section>
 
-          <label className="block">
-            <span className="text-sm text-text-secondary">Chest theme</span>
-            <select
-              className="mt-1 w-full rounded-xl border border-grand-line bg-ocean px-4 py-3"
-              value={form.capsuleTheme}
-              onChange={updateField("capsuleTheme")}
-            >
-              <option value="default">Default</option>
-              <option value="gold">Gold</option>
-              <option value="scroll">Scroll</option>
-              <option value="davy_jones">Davy Jones</option>
-              <option value="alabasta">Alabasta</option>
-              <option value="skypiea">Skypiea</option>
-            </select>
-          </label>
+          <Section label="Treasures to tuck inside" hint="A photo, your voice, a song for this moment.">
+            <div className="space-y-4">
+              <PhotoDropzone photos={photos} onAdd={addAttachment} onRemove={removeAttachment} />
+              <VoiceRecorder voice={voice} onAdd={addAttachment} onRemove={removeAttachment} />
+              <SongInput song={song} onChange={setSong} />
+            </div>
+          </Section>
 
-          <WaxSealButton type="submit" loading={isSaving} className="w-full justify-center">
-            SEAL & SET SAIL
-          </WaxSealButton>
+          <Section label="Your chest">
+            <ChestThemePicker value={form.capsuleTheme} onChange={(capsuleTheme) => set({ capsuleTheme })} />
+          </Section>
         </div>
+
+        {/* Seal summary */}
+        <aside className="lg:sticky lg:top-24 lg:h-fit">
+          <div className="map-card rounded-3xl p-5">
+            <h3 className="mb-4 font-display text-xl text-gold">Ready to seal?</h3>
+            <dl className="space-y-3 text-sm">
+              <div className="flex items-center gap-2 text-text-secondary">
+                <MapPin className="h-4 w-4 text-gold" />
+                <dt className="sr-only">Recipient</dt>
+                <dd>{recipientLabel}</dd>
+              </div>
+              <div className="flex items-center gap-2 text-text-secondary">
+                <CalendarClock className="h-4 w-4 text-gold" />
+                <dt className="sr-only">Delivery date</dt>
+                <dd>{form.deliveryDate ? formatDate(form.deliveryDate) : "No date yet"}</dd>
+              </div>
+              <div className="flex items-center gap-2 text-text-secondary">
+                <Paperclip className="h-4 w-4 text-gold" />
+                <dt className="sr-only">Attachments</dt>
+                <dd>
+                  {photos.length} photo{photos.length === 1 ? "" : "s"}
+                  {voice ? " · voice note" : ""}
+                  {song ? " · song" : ""}
+                </dd>
+              </div>
+              <div className="flex items-center gap-2 text-text-secondary">
+                <Package className="h-4 w-4 text-gold" />
+                <dt className="sr-only">Chest theme</dt>
+                <dd className="capitalize">{form.capsuleTheme.replace("_", " ")} chest</dd>
+              </div>
+            </dl>
+            <WaxSealButton type="submit" loading={create.isPending} className="mt-5 w-full">
+              🔮 Seal &amp; Set Sail
+            </WaxSealButton>
+            <p className="mt-3 text-center text-xs text-text-muted">
+              You can edit or cancel until 24h before it arrives.
+            </p>
+          </div>
+        </aside>
       </div>
     </form>
   );

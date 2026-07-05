@@ -1,56 +1,135 @@
-function buildEmailHtml({ title, body }) {
-  return `
-    <div style="font-family: Arial, sans-serif; background:#0b1d2e; color:#f0e6d3; padding:24px;">
-      <div style="max-width:640px; margin:0 auto; background:#071322; border:1px solid #1a3a5c; border-radius:20px; padding:24px;">
-        <h1 style="color:#f5c518; margin-top:0;">${title}</h1>
-        ${body}
-      </div>
-    </div>
-  `;
+import { Resend } from "resend";
+
+const apiKey = process.env.RESEND_API_KEY;
+const resend = apiKey ? new Resend(apiKey) : null;
+const FROM = process.env.EMAIL_FROM || "HeyFutureJasmine <no-reply@heyfuturejasmine.app>";
+
+function clientUrl() {
+  return (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
 }
 
-export async function sendEmail({ to, subject, body }) {
-  console.log(`[email] to=${to} subject=${subject}`);
-  console.log(buildEmailHtml({ title: subject, body }));
+/** Parchment-styled HTML email shell. */
+function shell({ heading, intro, ctaText, ctaUrl, footnote }) {
+  return `
+  <div style="background:#070f1a;padding:32px 16px;font-family:'DM Sans',Arial,sans-serif;">
+    <div style="max-width:560px;margin:0 auto;background:#f5eacf;border:1px solid #dfc9a0;border-radius:18px;
+                padding:32px;color:#2c1a0e;box-shadow:0 12px 40px rgba(0,0,0,.4);">
+      <div style="font-size:22px;color:#c9920a;font-weight:700;letter-spacing:.02em;margin-bottom:14px;">
+        ⚓ ${heading}
+      </div>
+      <div style="font-size:15px;line-height:1.7;color:#3a2a18;">${intro}</div>
+      ${
+        ctaText && ctaUrl
+          ? `<div style="margin:26px 0 6px;">
+               <a href="${ctaUrl}" style="display:inline-block;background:#d4302f;color:#fff;text-decoration:none;
+                  font-weight:600;padding:12px 22px;border-radius:999px;font-size:14px;">${ctaText}</a>
+             </div>`
+          : ""
+      }
+      ${
+        footnote
+          ? `<div style="margin-top:22px;padding-top:16px;border-top:1px solid #dfc9a0;font-size:12px;color:#8a7355;">${footnote}</div>`
+          : ""
+      }
+    </div>
+    <div style="max-width:560px;margin:14px auto 0;text-align:center;font-size:11px;color:#5a7a90;">
+      HeyFutureJasmine! — messages across the tides of time.
+    </div>
+  </div>`;
+}
+
+/** Low-level send. Falls back to console logging when Resend isn't configured. */
+export async function sendEmail({ to, subject, html }) {
+  const recipients = Array.isArray(to) ? to : [to];
+  if (!resend) {
+    console.log(`\n[email:dev] → ${recipients.join(", ")}\n[subject] ${subject}\n`);
+    return { mocked: true };
+  }
+  return resend.emails.send({ from: FROM, to: recipients, subject, html });
 }
 
 export async function sendVerificationEmail(email, token) {
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-  const link = `${clientUrl}/verify-email/${token}`;
   await sendEmail({
     to: email,
-    subject: "Verify your log pose, Nakama!",
-    body: `<p>Set course by confirming your email.</p><p><a href="${link}" style="color:#f5c518;">Verify email</a></p>`
+    subject: "Verify your Log Pose, nakama",
+    html: shell({
+      heading: "Confirm your email",
+      intro: "One tap sets your course. Confirm your email to start sealing treasures.",
+      ctaText: "Verify email",
+      ctaUrl: `${clientUrl()}/verify-email/${token}`,
+      footnote: "If you didn't sign up, you can ignore this message."
+    })
   });
 }
 
 export async function sendPasswordResetEmail(email, token) {
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-  const link = `${clientUrl}/reset-password/${token}`;
   await sendEmail({
     to: email,
-    subject: "A new course awaits",
-    body: `<p>Use this link to reset your password.</p><p><a href="${link}" style="color:#f5c518;">Reset password</a></p>`
+    subject: "A new course for your password",
+    html: shell({
+      heading: "Reset your password",
+      intro: "Use the link below to chart a new password. It expires in one hour.",
+      ctaText: "Reset password",
+      ctaUrl: `${clientUrl()}/reset-password/${token}`,
+      footnote: "Didn't request this? Your password is unchanged."
+    })
   });
 }
 
+/** Confirmation sent right after a letter is sealed. */
 export async function sendLetterSealedEmail(letter) {
   if (!letter) return;
-  const bodyPreview = String(letter.body || "").slice(0, 100);
+  const to = letter.sender?.email || letter.recipientEmail;
+  const when = new Date(letter.deliveryDate).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+  const preview = String(letter.body || "").replace(/<[^>]*>/g, "").slice(0, 120);
   await sendEmail({
-    to: letter.sender?.email || letter.recipientEmail,
-    subject: `⚓ Your treasure has been sealed, Captain ${letter.sender?.username || ""}!`,
-    body: `<p>Your treasure is sealed and sailing.</p><p>Recipient: ${letter.recipientName || letter.recipientEmail}</p><p>Preview: ${bodyPreview}</p>`
+    to,
+    subject: "⚓ Your treasure is sealed and sailing",
+    html: shell({
+      heading: "Sealed and set to sail",
+      intro: `Your letter is locked in its chest, bound for <strong>${when}</strong>.<br/><br/>
+              <em style="color:#6b563a;">"${preview}${preview.length >= 120 ? "…" : ""}"</em>`,
+      ctaText: "View in your log",
+      ctaUrl: `${clientUrl()}/log`,
+      footnote: "You can edit or cancel until 24 hours before delivery."
+    })
   });
 }
 
+/** Delivery email — sent when a chest reaches its date. */
 export async function sendLetterEmail(letter) {
   if (!letter) return;
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-  const unlockPath = letter.unlockToken ? `${clientUrl}/unlock/${letter.unlockToken}` : `${clientUrl}/treasure/${letter._id}`;
+
+  // Recipients depend on letter type (self → sender, partner → recipient, us → both).
+  const senderEmail = letter.sender?.email;
+  const recipients = new Set();
+  if (letter.letterType === "us") {
+    if (senderEmail) recipients.add(senderEmail.toLowerCase());
+    if (letter.recipientEmail) recipients.add(letter.recipientEmail.toLowerCase());
+  } else if (letter.letterType === "self") {
+    recipients.add((senderEmail || letter.recipientEmail || "").toLowerCase());
+  } else {
+    if (letter.recipientEmail) recipients.add(letter.recipientEmail.toLowerCase());
+  }
+  const to = [...recipients].filter(Boolean);
+  if (!to.length) return;
+
+  const openUrl = letter.unlockToken
+    ? `${clientUrl()}/unlock/${letter.unlockToken}`
+    : `${clientUrl()}/treasure/${letter._id}`;
+
   await sendEmail({
-    to: letter.recipientEmail,
-    subject: "A treasure from your past has arrived!",
-    body: `<p>Your treasure letter has washed ashore.</p><p><a href="${unlockPath}" style="color:#f5c518;">Open your treasure chest</a></p>`
+    to,
+    subject: "🏴‍☠️ A treasure from your past has washed ashore",
+    html: shell({
+      heading: "Your chest has reached the shore",
+      intro: "The tides carried it all this way. Open it when you're ready.",
+      ctaText: "Open your treasure",
+      ctaUrl: openUrl
+    })
   });
 }

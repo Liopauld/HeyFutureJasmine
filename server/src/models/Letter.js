@@ -7,6 +7,20 @@ const LetterSchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
+    // Who this treasure is for:
+    //   self    → the sender's own future self
+    //   partner → the sender's paired partner
+    //   us      → both of you, opened together
+    letterType: {
+      type: String,
+      enum: ["self", "partner", "us"],
+      default: "self"
+    },
+    // Kept in sync with letterType for backwards compatibility.
+    isSelfLetter: {
+      type: Boolean,
+      default: true
+    },
     recipientEmail: {
       type: String,
       required: true,
@@ -15,10 +29,6 @@ const LetterSchema = new mongoose.Schema(
     recipientName: {
       type: String,
       default: ""
-    },
-    isSelfLetter: {
-      type: Boolean,
-      default: true
     },
     subject: {
       type: String,
@@ -35,6 +45,23 @@ const LetterSchema = new mongoose.Schema(
         ref: "Attachment"
       }
     ],
+    // A song to play on opening (Spotify / YouTube / Apple Music link).
+    song: {
+      provider: {
+        type: String,
+        enum: ["spotify", "youtube", "apple", "other"]
+      },
+      url: String,
+      title: String,
+      artist: String
+    },
+    // A reply written back across time to another (delivered) letter.
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Letter",
+      default: null
+    },
+    // Timing
     deliveryDate: {
       type: Date,
       required: true
@@ -44,6 +71,8 @@ const LetterSchema = new mongoose.Schema(
       default: Date.now
     },
     deliveredAt: Date,
+    // First time the recipient opened the delivered chest (for the reveal ceremony).
+    openedAt: Date,
     status: {
       type: String,
       enum: ["sealed", "sailing", "delivered", "failed"],
@@ -73,6 +102,7 @@ const LetterSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// The delivery sweep queries by (deliveryDate, status) — keep it indexed.
 LetterSchema.index({ deliveryDate: 1, status: 1 });
 LetterSchema.index({ sender: 1 });
 LetterSchema.index({ recipientEmail: 1 });

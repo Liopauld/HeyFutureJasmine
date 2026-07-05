@@ -10,6 +10,12 @@ const UserSchema = new mongoose.Schema(
       minlength: 3,
       maxlength: 30
     },
+    // How the user wants to be shown in the app / on letters (defaults to username).
+    displayName: {
+      type: String,
+      trim: true,
+      maxlength: 40
+    },
     email: {
       type: String,
       required: true,
@@ -32,6 +38,21 @@ const UserSchema = new mongoose.Schema(
       url: String,
       publicId: String
     },
+    // ── Partner pairing (a crew of two) ──────────────────
+    partner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
+    },
+    // Single-use code another account redeems to pair with this user.
+    partnerInviteCode: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    // Shared date used for "our anniversary" delivery presets.
+    anniversary: Date,
+
     crewMembers: [
       {
         name: String,

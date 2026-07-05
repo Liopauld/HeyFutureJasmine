@@ -2,74 +2,68 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../../hooks/useAuth.js";
+import AuthShell, { AuthSubmit } from "../../components/auth/AuthShell.jsx";
+import Field from "../../components/ui/Field.jsx";
 
 export default function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
   const [form, setForm] = useState({ username: "", email: "", password: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsSubmitting(true);
+    setSubmitting(true);
     try {
       await register(form);
-      toast.success("Your account has set sail.");
+      toast.success("Your account has set sail. Check your email to verify.");
       navigate("/log");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Taken by the sea...");
+      toast.error(error.response?.data?.message || "Taken by the sea…");
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <form className="mx-auto max-w-md space-y-6" onSubmit={handleSubmit}>
-      <header>
-        <h1 className="font-display text-3xl text-gold">Join the Crew</h1>
-        <p className="text-text-secondary">Create an account to seal your treasure.</p>
-      </header>
-      <div className="rounded-3xl parchment-area p-6 text-ink">
-        <label className="block">
-          <span className="text-sm text-ink">Username</span>
-          <input
-            className="mt-1 w-full rounded-xl border border-parchment-dark bg-white px-4 py-3"
-            value={form.username}
-            onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
-            required
-          />
-        </label>
-        <label className="mt-4 block">
-          <span className="text-sm text-ink">Email</span>
-          <input
-            type="email"
-            className="mt-1 w-full rounded-xl border border-parchment-dark bg-white px-4 py-3"
-            value={form.email}
-            onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-            required
-          />
-        </label>
-        <label className="mt-4 block">
-          <span className="text-sm text-ink">Password</span>
-          <input
-            type="password"
-            className="mt-1 w-full rounded-xl border border-parchment-dark bg-white px-4 py-3"
-            value={form.password}
-            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-            required
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="mt-6 w-full rounded-full bg-straw-red px-5 py-3 text-white transition hover:bg-red-600 disabled:opacity-60"
-        >
-          {isSubmitting ? "Charting the Course..." : "Join the Crew"}
-        </button>
-        <Link to="/login" className="mt-4 inline-block text-gold">
-          Already sailing? Log in.
-        </Link>
-      </div>
-    </form>
+    <AuthShell
+      title="Join the Crew"
+      subtitle="Create an account to seal your treasure."
+      footer={
+        <>
+          Already sailing?{" "}
+          <Link to="/login" className="text-gold hover:underline">
+            Log in.
+          </Link>
+        </>
+      }
+    >
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <Field
+          label="Name"
+          value={form.username}
+          onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+          minLength={3}
+          maxLength={30}
+          required
+        />
+        <Field
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+          required
+        />
+        <Field
+          label="Password"
+          type="password"
+          value={form.password}
+          onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+          minLength={8}
+          required
+        />
+        <AuthSubmit loading={submitting}>Join the Crew</AuthSubmit>
+      </form>
+    </AuthShell>
   );
 }

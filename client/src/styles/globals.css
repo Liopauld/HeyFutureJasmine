@@ -1,102 +1,251 @@
-@import url("https://fonts.googleapis.com/css2?family=Pirata+One&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   HeyFutureJasmine! — Design tokens
+   One Piece "treasure across the tides of time" system.
+   Fonts are loaded in index.html (preconnect + <link>).
+   ============================================================ */
 :root {
-  --color-ocean: #0b1d2e;
-  --color-deep-sea: #071322;
-  --color-grand-line: #1a3a5c;
-  --color-gold: #f5c518;
-  --color-gold-light: #ffd966;
-  --color-gold-dark: #c9920a;
-  --color-straw-red: #d4302f;
-  --color-parchment: #f7ecd8;
-  --color-parchment-dark: #e8d5b0;
-  --color-ink: #2c1a0e;
-  --color-sealed: #5b7fa6;
-  --color-sailing: #f5c518;
-  --color-delivered: #3cb043;
-  --color-failed: #d4302f;
-  --color-text-primary: #f0e6d3;
-  --color-text-secondary: #9bb5c8;
-  --color-text-muted: #5a7a90;
+  /* Sunset Voyage — dusk sky & depths */
+  --color-ocean: #1e1230;
+  --color-deep-sea: #150c22;
+  --color-grand-line: #3a2a4d;
+
+  /* Sunset amber */
+  --color-gold: #f5a623;
+  --color-gold-light: #ffc46b;
+  --color-gold-dark: #c97a16;
+
+  /* Coral & parchment */
+  --color-straw-red: #f0705a;
+  --color-parchment: #f4e8d2;
+  --color-parchment-dark: #dcc6a0;
+  --color-ink: #33231a;
+
+  /* Delivery status */
+  --color-sealed: #9b7fb0;
+  --color-sailing: #f5a623;
+  --color-delivered: #5bbe7e;
+  --color-failed: #f0705a;
+
+  /* Text */
+  --color-text-primary: #f1e4d6;
+  --color-text-secondary: #c2a9d0;
+  --color-text-muted: #8a76a0;
+
+  /* Layout */
+  --nav-h: 70px;
+  --shell: 1180px;
+
+  color-scheme: dark;
 }
 
-body {
-  margin: 0;
-  background: var(--color-ocean);
+/* ============================================================
+   Base
+   ============================================================ */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-deep-sea);
+    color: var(--color-text-primary);
+    font-family: "DM Sans", system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3 {
+    line-height: 1.1;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-deep-sea);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-grand-line);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-gold-dark);
+  }
+
+  ::selection {
+    background: rgba(245, 166, 35, 0.28);
+    color: var(--color-text-primary);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
+/* ============================================================
+   Ornamental surfaces (reusable across the app)
+   ============================================================ */
+@layer components {
+  /* Deep-ocean page background with a faint radial glow */
+  .ocean-bg {
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(245, 166, 35, 0.06), transparent 45%),
+      linear-gradient(180deg, var(--color-ocean) 0%, var(--color-deep-sea) 100%);
+  }
 
-/* Decorative One Piece themed additions */
-.ocean-waves {
-  background: radial-gradient(ellipse at bottom, rgba(255,255,255,0.02), transparent 40%),
-    linear-gradient(180deg, rgba(11,29,46,0.9), rgba(7,19,34,0.95));
-  position: relative;
-  overflow: hidden;
-}
+  /* Parchment writing/reading surface — warm, softly textured */
+  .parchment {
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(170, 120, 30, 0.08) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 85%, rgba(100, 60, 10, 0.07) 0%, transparent 55%),
+      linear-gradient(180deg, var(--color-parchment) 0%, #f0e2c4 100%);
+    color: var(--color-ink);
+    border: 1px solid var(--color-parchment-dark);
+    box-shadow: var(--tw-shadow, 4px 6px 20px rgba(0, 0, 0, 0.45)),
+      inset 0 0 60px rgba(160, 110, 30, 0.08);
+  }
 
-.wave-anim {
-  position: absolute;
-  left: -50%;
-  right: -50%;
-  height: 200%;
-  top: -50%;
-  background: url('/assets/wave.svg') repeat-x;
-  opacity: 0.06;
-  animation: waveMove 18s linear infinite;
-}
+  /* Dark map-textured card (dashboards, panels) */
+  .map-card {
+    background-image:
+      linear-gradient(180deg, rgba(7, 15, 26, 0.9), rgba(26, 58, 92, 0.82)),
+      url("/assets/map-texture.svg");
+    background-size: cover;
+    background-blend-mode: overlay;
+    border: 1px solid rgba(245, 166, 35, 0.12);
+  }
 
-@keyframes waveMove {
-  from { transform: translateX(0); }
-  to { transform: translateX(50%); }
-}
+  /* Frosted glass panel */
+  .glass {
+    background: rgba(7, 15, 26, 0.7);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(245, 166, 35, 0.12);
+  }
 
-.parchment-area {
-  background: linear-gradient(180deg, var(--color-parchment) 0%, #f3e8cf 100%);
-  border: 1px solid var(--color-parchment-dark);
-  box-shadow: inset 0 6px 18px rgba(0,0,0,0.06);
-}
+  /* Wax seal — the signature CTA aesthetic */
+  .wax-seal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: radial-gradient(circle at 32% 30%, #ff6b6b, #c92a2a 62%);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 0.7rem 1.4rem;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(201, 42, 42, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.18),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.25);
+    transform-origin: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .wax-seal:hover {
+    box-shadow: 0 10px 30px rgba(201, 42, 42, 0.55), inset 0 2px 0 rgba(255, 255, 255, 0.18),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+  }
 
-.wax-seal {
-  display: inline-block;
-  background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a 60%);
-  color: white;
-  padding: 10px 18px;
-  border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(201,42,42,0.35), 0 2px 0 rgba(0,0,0,0.12) inset;
-  transform-origin: center;
-}
+  /* Gold gradient text (headings) */
+  .text-gold-sheen {
+    background: linear-gradient(
+      170deg,
+      var(--color-gold-light) 0%,
+      var(--color-gold) 45%,
+      var(--color-gold-dark) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 28px rgba(245, 166, 35, 0.2));
+  }
 
-.wax-seal.pulse {
-  animation: waxPulse 1.6s ease-in-out infinite;
-}
+  /* "WANTED" poster surface for profiles */
+  .wanted-poster {
+    background: linear-gradient(180deg, #fff6ea, #f0e1c4);
+    color: var(--color-ink);
+    border: 3px double #c9920a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  }
 
-@keyframes waxPulse {
-  0% { transform: scale(1) translateY(0); }
-  50% { transform: scale(1.04) translateY(-2px); }
-  100% { transform: scale(1) translateY(0); }
-}
+  /* Rendered letter body — shared by the TipTap editor and the reveal. */
+  .letter-content {
+    color: var(--color-ink);
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 1.05rem;
+    line-height: 1.85;
+  }
+  .letter-content:focus {
+    outline: none;
+  }
+  .letter-content p {
+    margin: 0 0 0.9rem;
+  }
+  .letter-content p:last-child {
+    margin-bottom: 0;
+  }
+  .letter-content h2 {
+    font-family: "Pirata One", cursive;
+    font-size: 1.55rem;
+    color: #7a3b12;
+    margin: 1.2rem 0 0.5rem;
+  }
+  .letter-content h3 {
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin: 1rem 0 0.4rem;
+  }
+  .letter-content ul {
+    list-style: disc;
+    padding-left: 1.4rem;
+    margin: 0 0 0.9rem;
+  }
+  .letter-content ol {
+    list-style: decimal;
+    padding-left: 1.4rem;
+    margin: 0 0 0.9rem;
+  }
+  .letter-content blockquote {
+    border-left: 3px solid var(--color-gold-dark);
+    padding-left: 1rem;
+    font-style: italic;
+    color: #6b563a;
+    margin: 0 0 0.9rem;
+  }
+  .letter-content strong {
+    font-weight: 700;
+  }
+  .letter-content a {
+    color: #b45309;
+    text-decoration: underline;
+  }
 
-.treasure-hero {
-  background-image: radial-gradient(ellipse at top left, rgba(245,197,24,0.06), transparent 10%), url('/assets/map-texture.svg');
-  background-size: cover;
-  border-radius: 20px;
-}
-
-.map-card {
-  background-image: linear-gradient(180deg, rgba(7,19,34,0.9), rgba(26,58,92,0.85)), url('/assets/map-texture.svg');
-  background-size: cover;
-  background-blend-mode: overlay;
-}
-
-.wanted-poster {
-  background: linear-gradient(180deg, #fff6ea, #f0e1c4);
-  border: 2px dashed #c9920a;
-  padding: 20px;
+  /* react-day-picker — themed to the treasure palette. */
+  .rdp-root {
+    --rdp-accent-color: var(--color-gold-dark);
+    --rdp-accent-background-color: rgba(245, 166, 35, 0.18);
+    --rdp-today-color: var(--color-gold-dark);
+    --rdp-day_button-border-radius: 8px;
+    margin: 0;
+    color: var(--color-ink);
+  }
 }

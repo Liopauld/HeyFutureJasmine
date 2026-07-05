@@ -1,6 +1,27 @@
-version: "3.9"
+# Local dev infrastructure for HeyFutureJasmine!
+# Usage: `docker compose up -d`  (starts MongoDB + Redis in the background)
+# Data persists in named volumes across restarts.
+
 services:
+  mongo:
+    image: mongo:7
+    container_name: hfj-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
   redis:
     image: redis:7-alpine
+    container_name: hfj-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+volumes:
+  mongo-data:
+  redis-data:

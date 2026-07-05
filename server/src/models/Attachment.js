@@ -23,11 +23,20 @@ const AttachmentSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    // Cloudinary's resource_type (Cloudinary stores audio under "video").
     resourceType: {
       type: String,
-      enum: ["image", "video", "raw"],
+      enum: ["image", "video", "audio", "raw"],
       required: true
     },
+    // Logical kind for the UI.
+    kind: {
+      type: String,
+      enum: ["photo", "voice", "file"],
+      default: "file"
+    },
+    // Duration in seconds (for voice notes / audio).
+    duration: Number,
     originalName: String,
     fileSize: Number,
     format: String

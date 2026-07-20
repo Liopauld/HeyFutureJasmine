@@ -10,6 +10,7 @@ import SparkBurst from "../components/effects/SparkBurst.jsx";
 import LoadingCompass from "../components/common/LoadingCompass.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
 import { timeAgo, formatDate } from "../lib/dates.js";
+import { fxFor } from "../lib/chestThemes.js";
 
 const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -49,6 +50,7 @@ export default function TreasureChest() {
   const sealedAgo = timeAgo(letter.sentAt || letter.createdAt);
   const photos = (letter.attachments || []).filter((a) => a.kind === "photo");
   const voice = (letter.attachments || []).find((a) => a.kind === "voice");
+  const fx = fxFor(letter.capsuleTheme);
 
   const openChest = () => {
     if (reducedMotion()) return setPhase("open");
@@ -61,7 +63,7 @@ export default function TreasureChest() {
 
   return (
     <div className="relative mx-auto max-w-2xl">
-      <GoldDust count={phase === "open" ? 8 : 16} />
+      <GoldDust theme={letter.capsuleTheme} count={phase === "open" ? 8 : 16} />
 
       <AnimatePresence mode="wait">
         {phase !== "open" ? (
@@ -82,7 +84,7 @@ export default function TreasureChest() {
             >
               <AnimatedChest theme={letter.capsuleTheme} open={phase === "opening"} size={220} />
             </motion.div>
-            {phase === "opening" ? <SparkBurst /> : null}
+            {phase === "opening" ? <SparkBurst theme={letter.capsuleTheme} /> : null}
 
             <p className="mt-6 text-sm uppercase tracking-[0.2em] text-text-muted">
               A treasure has washed ashore
@@ -166,7 +168,10 @@ export default function TreasureChest() {
           initial={{ opacity: 0 }}
           animate={{ opacity: [0, 0.85, 0] }}
           transition={{ duration: 1.2, times: [0, 0.35, 1] }}
-          className="pointer-events-none fixed inset-0 z-40 bg-[radial-gradient(circle_at_center,rgba(245,166,35,0.6),transparent_60%)]"
+          className="pointer-events-none fixed inset-0 z-40"
+          style={{
+            background: `radial-gradient(circle at center, ${fx.flare}, transparent 60%)`
+          }}
         />
       ) : null}
     </div>

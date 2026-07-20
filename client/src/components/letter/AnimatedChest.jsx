@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { fxFor } from "../../lib/chestThemes.js";
 
 const WOOD = {
   default: { body: "#6b4423", lid: "#7d5230", band: "#c97a16", dark: "#4a2f18" },
@@ -12,6 +13,7 @@ const WOOD = {
 /** A treasure chest whose lid lifts and whose insides glow when `open`. */
 export default function AnimatedChest({ theme = "default", open = false, size = 200 }) {
   const w = WOOD[theme] || WOOD.default;
+  const fx = fxFor(theme);
 
   return (
     <svg width={size} height={size * 0.95} viewBox="0 0 200 190" fill="none" aria-hidden="true">
@@ -21,7 +23,7 @@ export default function AnimatedChest({ theme = "default", open = false, size = 
         cy="104"
         rx="66"
         ry="26"
-        fill="var(--color-gold-light)"
+        fill={fx.glow}
         initial={false}
         animate={{ opacity: open ? 0.9 : 0, scale: open ? 1 : 0.4 }}
         transition={{ duration: 0.5 }}
@@ -43,7 +45,7 @@ export default function AnimatedChest({ theme = "default", open = false, size = 
             width="4"
             height="96"
             rx="2"
-            fill="var(--color-gold-light)"
+            fill={fx.ray}
             opacity={0.5}
             transform={`rotate(${deg} 100 104)`}
           />

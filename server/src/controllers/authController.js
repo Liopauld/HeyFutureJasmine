@@ -17,10 +17,13 @@ function buildAuthPayload(user) {
 }
 
 function setRefreshCookie(res, token) {
+  const isProd = process.env.NODE_ENV === "production";
   res.cookie("refreshToken", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    // In production the client and API live on separate Render subdomains, so
+    // the cookie is cross-site and must be SameSite=None + Secure to be sent.
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 }
@@ -91,7 +94,12 @@ export async function logout(req, res, next) {
         await user.save();
       }
     }
-    res.clearCookie("refreshToken");
+    const isProd = process.env.NODE_ENV === "production";
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax"
+    });
     return res.status(204).send();
   } catch (error) {
     return next(error);

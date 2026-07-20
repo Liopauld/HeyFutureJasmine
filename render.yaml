@@ -1,0 +1,70 @@
+# Render Blueprint for HeyFutureJasmine!
+# Deploys the Express API (web service) and the Vite frontend (static site).
+# Docs: https://render.com/docs/blueprint-spec
+#
+# One-time secrets you must fill in the Render dashboard (they are marked
+# sync:false below so they are NOT stored in git):
+#   API service:  MONGODB_URI, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET,
+#                 CLOUDINARY_* (optional), RESEND_API_KEY (optional)
+# CLIENT_URLS and VITE_API_URL are cross-wired automatically once both
+# services exist — see the notes in DEPLOY.md.
+
+services:
+  # ── Backend: Express API ─────────────────────────────
+  - type: web
+    name: heyfuturejasmine-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: node index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Redis is intentionally omitted — the daily delivery sweep handles
+      # letter delivery when Redis is absent. Add REDIS_HOST later if desired.
+      - key: JWT_ACCESS_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 7d
+      - key: EMAIL_FROM
+        value: HeyFutureJasmine <no-reply@heyfuturejasmine.app>
+      # Auto-generated strong secrets — no need to set these by hand.
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # Fill these in the dashboard (kept out of git).
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URLS
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+
+  # ── Frontend: Vite static site ───────────────────────
+  - type: web
+    name: heyfuturejasmine-web
+    runtime: static
+    rootDir: client
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    # SPA fallback so client-side routes (e.g. /letters/:id) resolve.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # Point the frontend at the API. Set this to the API's URL once it
+      # exists, e.g. https://heyfuturejasmine-api.onrender.com/api
+      - key: VITE_API_URL
+        sync: false

@@ -179,10 +179,10 @@ export default function WriteLetter() {
   if (isEdit && existing.isError) {
     return (
       <EmptyState
-        title={existing.error?.response?.status === 423 ? "Already sealed" : "Can't open that chest"}
+        title={existing.error?.response?.status === 423 ? "🔒 Chest Sealed for Voyage" : "Can't open that chest"}
         description={
           existing.error?.response?.data?.message ||
-          "This chest can no longer be changed — it's too close to shore."
+          "⚠️ This letter is within 24 hours of delivery and is actively sailing. It can no longer be edited or abandoned."
         }
         action={
           <Link to="/log" className="inline-flex items-center gap-2 text-gold hover:underline">

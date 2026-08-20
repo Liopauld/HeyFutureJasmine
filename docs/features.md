@@ -23,4 +23,8 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Auto-Sync:** User profile in MongoDB automatically syncs bounty and title whenever letters are sealed or deleted.
 - **Wanted Poster UI:** Implemented authentic 'DEAD OR ALIVE' poster on `/profile` with portrait upload, golden bounty counter, and visual rank tier guide.
 - **Navbar Badge:** Displayed active pirate title pill directly in navigation bar.
-- **E2E Smoke Tests:** Added unit and integration assertions in `smoke.js` exercising all rank tiers and new user registration defaults.
+### HFJ-005: 24-Hour Edit Lock & End-to-End Suite (Sprint 1)
+- **Lock Window Security:** Enforced strict HTTP 423 Locked responses across `GET /:id/edit`, `PATCH /:id`, and `DELETE /:id` when within 24 hours of scheduled `deliveryDate`.
+- **UI Lock Feedback:** Displayed '🔒 Locked (<24h)' badge on Captain's Log cards and rich seafaring notification banner on `/write/:id/edit`.
+- **Comprehensive E2E Suite:** Built 43-point in-memory automated smoke test suite in `server/src/scripts/smoke.js` exercising 100% of auth, pairing, locking, external delivery, guest reveals, dev inspector, and sweep fallbacks.
+

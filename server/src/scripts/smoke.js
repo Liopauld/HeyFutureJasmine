@@ -155,6 +155,10 @@ async function main() {
       body: { subject: "Too late" }
     });
     check("patch is 423 once inside the lock window", lockedPatch.status === 423);
+    const lockedDelete = await req("DELETE", `/letters/${lockedLetter._id}`, {
+      token: paul.accessToken
+    });
+    check("delete is 423 once inside the lock window", lockedDelete.status === 423);
 
     // Force-deliver (dev) then reveal
     const forced = await req("POST", `/dev/deliver/${letterId}`, { token: paul.accessToken });

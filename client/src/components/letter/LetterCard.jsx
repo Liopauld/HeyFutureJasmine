@@ -137,6 +137,13 @@ export default function LetterCard({ letter, userId, email, onDelete }) {
                   </button>
                 ) : null}
               </div>
+            ) : !delivered && isSender ? (
+              <span
+                className="text-[10px] font-semibold text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1"
+                title="⚠️ This letter is within 24 hours of delivery and is sealed for voyage."
+              >
+                🔒 Locked (&lt;24h)
+              </span>
             ) : null}
           </div>
         </article>

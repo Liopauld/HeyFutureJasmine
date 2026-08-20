@@ -8,6 +8,7 @@ import RequireAuth from "./components/auth/RequireAuth.jsx";
 import LoadingCompass from "./components/common/LoadingCompass.jsx";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
 import DevInspectorBar from "./components/common/DevInspectorBar.jsx";
+import OfflineBanner from "./components/common/OfflineBanner.jsx";
 import { useAuthBootstrap } from "./hooks/useAuth.js";
 
 // Code-split each route so heavy deps (TipTap, Framer Motion, DayPicker)
@@ -30,6 +31,7 @@ export default function App() {
 
   return (
     <div className="relative flex min-h-screen flex-col font-ui text-text-primary">
+      <OfflineBanner />
       <OceanBackground />
       <Navbar />
       <PageWrapper>

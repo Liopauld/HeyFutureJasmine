@@ -27,4 +27,7 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Lock Window Security:** Enforced strict HTTP 423 Locked responses across `GET /:id/edit`, `PATCH /:id`, and `DELETE /:id` when within 24 hours of scheduled `deliveryDate`.
 - **UI Lock Feedback:** Displayed '🔒 Locked (<24h)' badge on Captain's Log cards and rich seafaring notification banner on `/write/:id/edit`.
 - **Comprehensive E2E Suite:** Built 43-point in-memory automated smoke test suite in `server/src/scripts/smoke.js` exercising 100% of auth, pairing, locking, external delivery, guest reveals, dev inspector, and sweep fallbacks.
-
+### HFJ-006: Offline Caching & Add to Home Screen Support (Sprint 2)
+- **Service Worker Caching:** Implemented `sw.js` with static asset pre-caching, cache-first strategies for fonts and media, and network-first navigation with offline fallback.
+- **Progressive Web App Manifest:** Configured `site.webmanifest` with standalone display mode, theme colors (`#150C22`), and SVG/PNG icon sets for iOS and Android home screen installation.
+- **Offline Mode Indicator:** Built `OfflineBanner.jsx` dynamically alerting the user when network connectivity drops while allowing offline viewing of cached pages.

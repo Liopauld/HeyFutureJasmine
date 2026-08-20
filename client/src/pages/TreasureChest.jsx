@@ -44,6 +44,36 @@ export default function TreasureChest() {
     );
   }
 
+  // Neither an id nor a token in the URL: nothing to haul ashore.
+  if (!letter) {
+    return (
+      <EmptyState
+        title="Treasure not found"
+        description="There's no chest at this heading."
+        action={
+          <Link to="/log" className="inline-flex items-center gap-2 text-gold hover:underline">
+            <ArrowLeft className="h-4 w-4" /> Back to Our Log
+          </Link>
+        }
+      />
+    );
+  }
+
+  // Reached by URL before the tides delivered it — the body isn't sent at all.
+  if (letter.sealed) {
+    return (
+      <EmptyState
+        title="Still sealed"
+        description={`This chest opens on ${formatDate(letter.deliveryDate)}.`}
+        action={
+          <Link to="/log" className="inline-flex items-center gap-2 text-gold hover:underline">
+            <ArrowLeft className="h-4 w-4" /> Back to Our Log
+          </Link>
+        }
+      />
+    );
+  }
+
   const isFromSelf = letter.letterType === "self";
   const senderName = letter.senderInfo?.displayName;
   const fromLabel = isFromSelf ? "from your past self" : senderName ? `from ${senderName}` : "from your crew";

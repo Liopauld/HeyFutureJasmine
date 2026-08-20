@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { UserRound, Heart, Users } from "lucide-react";
 
-export default function RecipientPicker({ value, onChange, partner }) {
+export default function RecipientPicker({ value, onChange, partner, locked = false }) {
   const partnerName = partner?.displayName || partner?.username;
 
   const options = [
@@ -31,13 +31,15 @@ export default function RecipientPicker({ value, onChange, partner }) {
   return (
     <div>
       <div className="grid gap-3 sm:grid-cols-3">
-        {options.map(({ key, icon: Icon, title, desc, disabled }) => {
+        {options.map(({ key, icon: Icon, title, desc, disabled: unavailable }) => {
           const active = value === key;
+          // Once sealed, the recipient is fixed — the server resolved it at creation.
+          const disabled = unavailable || (locked && !active);
           return (
             <button
               key={key}
               type="button"
-              disabled={disabled}
+              disabled={disabled || locked}
               onClick={() => onChange(key)}
               className={`group relative rounded-2xl border p-4 text-left transition ${
                 active
@@ -56,7 +58,12 @@ export default function RecipientPicker({ value, onChange, partner }) {
           );
         })}
       </div>
-      {!partner ? (
+      {locked ? (
+        <p className="mt-2 text-xs text-text-muted">
+          The recipient is set once a chest is sealed.
+        </p>
+      ) : null}
+      {!partner && !locked ? (
         <p className="mt-2 text-xs text-text-muted">
           Writing to your partner?{" "}
           <Link to="/profile" className="text-gold underline">

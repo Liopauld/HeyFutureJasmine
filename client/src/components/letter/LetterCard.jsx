@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ArrowRight } from "lucide-react";
+import { Trash2, ArrowRight, Pencil } from "lucide-react";
 import TreasureChest from "./TreasureChest.jsx";
 import GrandLineRoute from "./GrandLineRoute.jsx";
 import { countdownLabel, progressBetween, daysBetween, formatDate } from "../../lib/dates.js";
@@ -20,7 +20,8 @@ export default function LetterCard({ letter, userId, email, onDelete }) {
           ? `To ${letter.recipientName || "your partner"}`
           : `From ${letter.senderInfo?.displayName || "your crew"}`;
 
-  const canDelete =
+  // The sender can reopen or abandon a chest until 24h before it lands.
+  const canModify =
     isSender && !delivered && new Date(letter.deliveryDate) - Date.now() > 24 * 60 * 60 * 1000;
 
   const Wrapper = delivered
@@ -83,18 +84,29 @@ export default function LetterCard({ letter, userId, email, onDelete }) {
             ) : (
               <span className="text-xs uppercase tracking-wider text-sealed">Sailing</span>
             )}
-            {canDelete && onDelete ? (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onDelete(letter);
-                }}
-                className="rounded-full p-1.5 text-text-muted transition hover:text-straw-red"
-                aria-label="Send to Davy Jones"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+            {canModify ? (
+              <div className="flex items-center gap-1">
+                <Link
+                  to={`/write/${letter._id}/edit`}
+                  className="rounded-full p-1.5 text-text-muted transition hover:text-gold"
+                  aria-label="Reopen this chest"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Link>
+                {onDelete ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onDelete(letter);
+                    }}
+                    className="rounded-full p-1.5 text-text-muted transition hover:text-straw-red"
+                    aria-label="Send to Davy Jones"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </article>

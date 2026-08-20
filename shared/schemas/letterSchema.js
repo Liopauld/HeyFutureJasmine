@@ -13,10 +13,10 @@ export const letterSchema = z.object({
   subject: z.string().max(200).optional(),
   body: z.string().min(1).max(50000),
   deliveryDate: z.string(),
-  visibility: z.enum(["private", "public_anonymous", "public_named"]).default("private"),
   capsuleTheme: z
     .enum(["default", "gold", "scroll", "davy_jones", "alabasta", "skypiea"])
     .default("default"),
+  visibility: z.enum(["private", "public_anonymous", "public_named"]).default("private"),
   song: songSchema.optional(),
   attachments: z.array(z.string()).optional(),
   replyTo: z.string().optional()

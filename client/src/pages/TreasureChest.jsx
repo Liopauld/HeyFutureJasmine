@@ -174,12 +174,48 @@ export default function TreasureChest() {
                   <SongEmbed song={letter.song} />
                 </div>
               ) : null}
+
+              {/* Guest CTA Banner */}
+              {token ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-8 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-amber-900/20 to-transparent p-5 text-center shadow-lg"
+                >
+                  <p className="font-display text-lg text-amber-300 mb-1">
+                    ⚓ You've opened a Grand Line treasure capsule!
+                  </p>
+                  <p className="text-xs text-sand-dim mb-4">
+                    Join HeyFutureJasmine! to seal your own letters, photos, and songs across time to yourself or your crew.
+                  </p>
+                  <div className="flex items-center justify-center gap-3">
+                    <Link
+                      to="/register"
+                      className="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-ocean-abyss text-xs font-bold font-display tracking-wider transition-all"
+                    >
+                      Join the Crew (Free)
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="px-4 py-2 rounded-full border border-white/20 hover:border-amber-400 text-sand text-xs font-medium transition-all"
+                    >
+                      Log In
+                    </Link>
+                  </div>
+                </motion.div>
+              ) : null}
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-              <Link to="/log" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold">
-                <ArrowLeft className="h-4 w-4" /> Back to Our Log
-              </Link>
+              {token ? (
+                <Link to="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold">
+                  <ArrowLeft className="h-4 w-4" /> Return to Shore
+                </Link>
+              ) : (
+                <Link to="/log" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold">
+                  <ArrowLeft className="h-4 w-4" /> Back to Our Log
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={writeBack}

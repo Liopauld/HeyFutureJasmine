@@ -13,7 +13,7 @@ const LetterSchema = new mongoose.Schema(
     //   us      → both of you, opened together
     letterType: {
       type: String,
-      enum: ["self", "partner", "us"],
+      enum: ["self", "partner", "us", "other"],
       default: "self"
     },
     // Kept in sync with letterType for backwards compatibility.

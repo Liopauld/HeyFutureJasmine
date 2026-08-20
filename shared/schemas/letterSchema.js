@@ -8,8 +8,10 @@ export const songSchema = z.object({
 });
 
 export const letterSchema = z.object({
-  // Recipient is resolved server-side from letterType (self → you, partner/us → your partner).
-  letterType: z.enum(["self", "partner", "us"]).default("self"),
+  letterType: z.enum(["self", "partner", "us", "other"]).default("self"),
+  recipientEmail: z.string().email().optional().or(z.literal("")),
+  recipientName: z.string().max(100).optional(),
+  addToCrew: z.boolean().optional(),
   subject: z.string().max(200).optional(),
   body: z.string().min(1).max(50000),
   deliveryDate: z.string(),

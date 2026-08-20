@@ -34,6 +34,9 @@ const stripHtml = (html) => (html || "").replace(/<[^>]*>/g, "").replace(/&nbsp;
 
 const EMPTY_FORM = {
   letterType: "self",
+  recipientEmail: "",
+  recipientName: "",
+  addToCrew: false,
   subject: "",
   body: "",
   deliveryDate: "",
@@ -68,6 +71,9 @@ export default function WriteLetter() {
     const letter = existing.data;
     setForm({
       letterType: letter.letterType,
+      recipientEmail: letter.recipientEmail || "",
+      recipientName: letter.recipientName || "",
+      addToCrew: false,
       subject: letter.subject === "A Treasure From Your Past" ? "" : letter.subject || "",
       body: letter.body || "",
       deliveryDate: letter.deliveryDate,
@@ -124,23 +130,34 @@ export default function WriteLetter() {
       ? "Your future self"
       : form.letterType === "us"
         ? "Both of you"
-        : partner?.displayName || partner?.username || "Your partner";
+        : form.letterType === "other"
+          ? form.recipientName ? `${form.recipientName} (${form.recipientEmail})` : form.recipientEmail || "Other Nakama"
+          : partner?.displayName || partner?.username || "Your partner";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!hasWords) return toast.error("Your letter needs some words, Captain.");
     if (!form.deliveryDate) return toast.error("Chart a destination date first.");
-    if (!isEdit && form.letterType !== "self" && !partner) {
+    if (!isEdit && (form.letterType === "partner" || form.letterType === "us") && !partner) {
       return toast.error("Pair with your partner first.");
+    }
+    if (form.letterType === "other" && !form.recipientEmail) {
+      return toast.error("Please provide a destination email for your nakama.");
     }
 
     const payload = {
       subject: form.subject || undefined,
       body: form.body,
       deliveryDate: form.deliveryDate,
+      letterType: form.letterType,
+      recipientEmail: form.recipientEmail || undefined,
+      recipientName: form.recipientName || undefined,
+      addToCrew: form.addToCrew,
       capsuleTheme: form.capsuleTheme,
+      visibility: form.visibility,
       attachments: attachments.map((a) => a._id),
-      song: song || undefined
+      song: song?.url ? song : undefined,
+      replyTo: replyTo?._id || replyTo || undefined
     };
 
     try {
@@ -224,6 +241,13 @@ export default function WriteLetter() {
             <RecipientPicker
               value={form.letterType}
               onChange={(letterType) => set({ letterType })}
+              recipientEmail={form.recipientEmail}
+              onEmailChange={(recipientEmail) => set({ recipientEmail })}
+              recipientName={form.recipientName}
+              onNameChange={(recipientName) => set({ recipientName })}
+              addToCrew={form.addToCrew}
+              onAddToCrewChange={(addToCrew) => set({ addToCrew })}
+              crewMembers={user?.crewMembers || []}
               partner={partner}
               locked={isEdit}
             />

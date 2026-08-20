@@ -231,6 +231,46 @@ async function main() {
     // Trident Salute
     const likeRes = await req("POST", `/letters/${publicLetter._id}/like`);
     check("trident salute increments likes counter", likeRes.status === 200 && likeRes.data?.likes === 6);
+
+    // External Recipient & Guest Unlock E2E Tests (HFJ-002)
+    const guestDeliveryDate = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString();
+    const guestLetterRes = await req("POST", "/letters", {
+      token: paul.accessToken,
+      body: {
+        letterType: "other",
+        recipientEmail: "sanji.chef@baratie.sea",
+        recipientName: "Sanji",
+        addToCrew: true,
+        subject: "Recipes of the All Blue",
+        body: "<p>Feed anyone who is hungry on the sea.</p>",
+        deliveryDate: guestDeliveryDate
+      }
+    });
+
+    const guestLetterId = guestLetterRes.data?.letter?._id;
+    const guestUnlockToken = guestLetterRes.data?.letter?.unlockToken;
+    check("create external recipient letter returns unlock token", guestLetterRes.status === 201 && Boolean(guestUnlockToken));
+
+    // Verify sender's crewMembers array was updated
+    const updatedPaulDoc = await User.findOne({ email: "paul.test@x.io" });
+    const crewAdded = updatedPaulDoc?.crewMembers?.some((c) => c.email === "sanji.chef@baratie.sea");
+    check("recipient saved to sender crew address book", Boolean(crewAdded));
+
+    // Sealed guest letter cannot be unlocked before delivery (423)
+    const preDeliverUnlock = await req("GET", `/letters/unlock/${guestUnlockToken}`);
+    check("guest unlock fails before delivery (423)", preDeliverUnlock.status === 423);
+
+    // Force deliver guest letter
+    await req("POST", `/dev/deliver/${guestLetterId}`, { token: paul.accessToken });
+
+    // Guest accesses without auth token
+    const guestUnlockRes = await req("GET", `/letters/unlock/${guestUnlockToken}`);
+    check("unauthenticated guest unlock succeeds once delivered", guestUnlockRes.status === 200);
+    check("guest unlocked letter reveals body", guestUnlockRes.data?.letter?.body?.includes("Feed anyone"));
+
+    // Invalid unlock token returns 404
+    const invalidTokenRes = await req("GET", "/letters/unlock/non-existent-uuid-token");
+    check("invalid unlock token returns 404", invalidTokenRes.status === 404);
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

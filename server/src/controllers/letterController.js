@@ -88,7 +88,7 @@ export async function createLetter(req, res, next) {
       return res.status(403).json({ message: "Verify your email before setting sail" });
     }
 
-    const letterType = ["self", "partner", "us"].includes(req.body.letterType)
+    const letterType = ["self", "partner", "us", "other"].includes(req.body.letterType)
       ? req.body.letterType
       : req.body.isSelfLetter === false
         ? "partner"
@@ -100,6 +100,27 @@ export async function createLetter(req, res, next) {
     if (letterType === "self") {
       recipientEmail = sender.email;
       recipientName = sender.displayName || sender.username;
+    } else if (letterType === "other") {
+      if (!req.body.recipientEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.recipientEmail)) {
+        return res.status(400).json({ message: "Provide a valid recipient email" });
+      }
+      recipientEmail = String(req.body.recipientEmail).toLowerCase().trim();
+      recipientName = req.body.recipientName || "";
+
+      // Add to crew if requested
+      if (req.body.addToCrew) {
+        if (!sender.crewMembers) sender.crewMembers = [];
+        const alreadyInCrew = sender.crewMembers.some(
+          (c) => c.email.toLowerCase() === recipientEmail.toLowerCase()
+        );
+        if (!alreadyInCrew) {
+          sender.crewMembers.push({
+            name: recipientName || recipientEmail,
+            email: recipientEmail
+          });
+          await sender.save();
+        }
+      }
     } else {
       if (!sender.partner) {
         return res.status(400).json({ message: "Pair with your partner before writing to them" });

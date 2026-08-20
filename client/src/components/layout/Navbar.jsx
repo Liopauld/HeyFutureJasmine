@@ -1,9 +1,10 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Anchor, PenLine, ScrollText, LogOut, UserRound } from "lucide-react";
+import { Anchor, PenLine, ScrollText, LogOut, UserRound, Sparkles } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth.js";
 
 const links = [
+  { to: "/noticeboard", label: "Noticeboard", icon: Sparkles },
   { to: "/write", label: "Write a Letter", icon: PenLine },
   { to: "/log", label: "Our Log", icon: ScrollText }
 ];

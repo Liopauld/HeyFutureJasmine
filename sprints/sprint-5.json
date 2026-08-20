@@ -1,0 +1,85 @@
+{
+  "sprint": 5,
+  "title": "Sprint 5: Cinematic 3D Chest Reveal & Wanted Poster Export",
+  "goal": "Build an emotional, cinematic 3D chest opening ceremony with Framer Motion and canvas confetti, enable 'Reply to Past' letter threading, and create a high-res Wanted Poster PNG canvas export.",
+  "status": "backlog",
+  "startDate": "2026-10-19",
+  "targetDate": "2026-11-02",
+  "issues": [
+    {
+      "id": "HFJ-014",
+      "title": "[UI/Animation] Cinematic 3D Treasure Chest Unboxing & Confetti Ceremony",
+      "labels": ["animation", "frontend", "sprint-5", "ux", "priority:high"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a recipient opening a delivered letter, I want an immersive 3D chest unboxing ceremony with unlocking animations, sound effects, and confetti so opening the letter feels like discovering legendary treasure.",
+      "technical_scope": {
+        "client_pages": ["client/src/pages/TreasureChest.jsx (ceremony state machine: locked -> unlocking -> opened -> reading)"],
+        "client_components": ["client/src/components/letter/TreasureChest3D.jsx (Framer Motion 3D perspective transforms, chest lid spring animations)", "client/src/components/effects/GoldConfetti.jsx (Canvas confetti launcher)"]
+      },
+      "acceptance_criteria": [
+        "Unopened delivered letters show a pulsing, sealed treasure chest on sea sands.",
+        "Clicking 'Unlock Chest' triggers a key turn / lock break animation with gold particle bursts and optional creaking sound.",
+        "Parchment letter scrolls out smoothly from the chest with typewriter/fade-in text effects.",
+        "Chest theme accurately renders chosen style ('default', 'gold', 'scroll', 'davy_jones', 'alabasta', 'skypiea').",
+        "Animation can be safely skipped or replayed via a 'Replay Ceremony' button."
+      ],
+      "end_to_end_test_plan": [
+        "1. [UI Animation Test] Open /treasure/:id on delivered letter -> click 'Open Chest' -> verify state changes from 'locked' to 'opened' and confetti fires.",
+        "2. [Theme Test] Verify each of the 6 chest themes renders its distinct color palette, textures, and seal badges.",
+        "3. [Mobile Test] Verify 3D animations run at 60fps on mobile viewports with touch interaction.",
+        "4. [Accessibility Test] Verify prefers-reduced-motion media query presents an accessible instant reveal."
+      ]
+    },
+    {
+      "id": "HFJ-015",
+      "title": "[Feature] 'Reply to the Past' Letter Chain & Response Threading",
+      "labels": ["feature", "frontend", "backend", "sprint-5", "priority:medium"],
+      "priority": "medium",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a recipient who just read a delivered letter from years ago, I want a 'Reply to this Letter' button that pre-links our responses into a time-travel conversation thread.",
+      "technical_scope": {
+        "models": ["server/src/models/Letter.js (replyTo ObjectId ref)"],
+        "controllers": ["server/src/controllers/letterController.js (getLetterWithThread)"],
+        "client_pages": ["client/src/pages/WriteLetter.jsx (accept ?replyTo= query parameter)"],
+        "client_components": ["client/src/components/letter/LetterThreadCard.jsx (render previous letter excerpt and reply link)"]
+      },
+      "acceptance_criteria": [
+        "Delivered letter page provides a prominent 'Reply across Time' CTA button.",
+        "Clicking opens /write with `replyTo` parameter pre-populating recipient email and referencing original letter subject.",
+        "Once the reply letter is delivered in the future, viewing it displays a timeline thread showing the original letter and the reply.",
+        "Original sender receives a notification when a reply capsule is sealed for them."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] Create Letter A -> deliver Letter A -> POST Letter B with `replyTo: Letter A._id` -> verify replyTo saved.",
+        "2. [UI Test] Navigate to /treasure/LetterA -> click 'Reply' -> verify /write loads with recipient and subject pre-filled.",
+        "3. [UI Test] Force deliver Letter B -> open /treasure/LetterB -> verify original Letter A snippet is displayed in conversation thread.",
+        "4. [Automated] Add reply threading assertions in server test suite."
+      ]
+    },
+    {
+      "id": "HFJ-016",
+      "title": "[Gamification] Interactive Canvas Wanted Poster PNG Card Exporter",
+      "labels": ["gamification", "frontend", "sprint-5", "priority:low"],
+      "priority": "low",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a proud pirate scribe, I want to download or share my One Piece Wanted Poster as a high-resolution PNG image with my avatar, bounty, rank, and letters sealed count.",
+      "technical_scope": {
+        "client_utils": ["client/src/lib/canvasPosterExport.js (HTML5 Canvas rendering with Pirata One font and parchment textures)"],
+        "client_pages": ["client/src/pages/Profile.jsx (Export Poster button, Share to X/Socials button)"]
+      },
+      "acceptance_criteria": [
+        "Profile page includes a 'Download Bounty Poster' button.",
+        "Canvas renders authentic One Piece wanted poster aesthetic with user's avatar, 'DEAD OR ALIVE', custom pirate title, and formatted bounty (e.g., ฿50,000,000).",
+        "Generated image downloads as high-res PNG (`HeyFutureJasmine_Wanted_<username>.png`).",
+        "Supports native Web Share API on mobile devices for direct sharing to Instagram Stories / WhatsApp."
+      ],
+      "end_to_end_test_plan": [
+        "1. [Canvas Test] Trigger poster generation in /profile -> verify HTMLCanvasElement draws background texture, avatar image, and bounty text.",
+        "2. [Download Test] Click 'Download Poster' -> verify valid PNG Blob is triggered for download with correct dimensions (1200x1600px).",
+        "3. [Share Test] Trigger on mobile browser -> verify `navigator.share` is invoked with image file.",
+        "4. [Automated] Validate canvas generation function exports valid data URL."
+      ]
+    }
+  ]
+}

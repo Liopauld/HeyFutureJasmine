@@ -1,0 +1,31 @@
+name: Keep the API awake
+
+# The free hosting tier sleeps the API after ~15 minutes idle, which stops the
+# in-process delivery cron. Every ping wakes it AND triggers a delivery sweep
+# (see server/src/middleware/sweepOnRequest.js), so chests land close to on time.
+#
+# This is best-effort only: GitHub delays scheduled runs under load and disables
+# them after 60 days without repo activity. Delivery correctness does not depend
+# on it — the sweep-on-request middleware catches up whenever anyone visits.
+# Set the API_HEALTH_URL repository variable, e.g.
+#   https://heyfuturejasmine-api.onrender.com/api/health
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the health check
+        env:
+          URL: ${{ vars.API_HEALTH_URL }}
+        run: |
+          if [ -z "$URL" ]; then
+            echo "API_HEALTH_URL variable is not set — skipping."
+            exit 0
+          fi
+          # Generous timeout: a cold start can take ~50s on the free tier.
+          curl --fail --silent --show-error --max-time 90 "$URL"

@@ -18,7 +18,7 @@ export default function SongInput({ song, onChange }) {
         <input
           value={url}
           onChange={(e) => update({ url: e.target.value })}
-          placeholder="Paste a Spotify or YouTube link…"
+          placeholder="Paste a Spotify, YouTube, or Apple Music link…"
           className="w-full bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
         />
         {url ? (

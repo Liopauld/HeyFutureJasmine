@@ -5,12 +5,15 @@ import { ArrowLeft, PenLine, Volume2 } from "lucide-react";
 import { useLetter, useLetterByToken } from "../hooks/useLetters.js";
 import AnimatedChest from "../components/letter/AnimatedChest.jsx";
 import SongEmbed from "../components/letter/SongEmbed.jsx";
+import GramophonePlayer from "../components/letter/GramophonePlayer.jsx";
+import PhotoLightbox from "../components/letter/PhotoLightbox.jsx";
 import GoldDust from "../components/effects/GoldDust.jsx";
 import SparkBurst from "../components/effects/SparkBurst.jsx";
 import LoadingCompass from "../components/common/LoadingCompass.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
 import { timeAgo, formatDate } from "../lib/dates.js";
 import { fxFor } from "../lib/chestThemes.js";
+import { playChestOpenSound } from "../lib/soundEffects.js";
 
 const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -20,6 +23,7 @@ export default function TreasureChest() {
   const { id, token } = useParams();
   const navigate = useNavigate();
   const [phase, setPhase] = useState("closed"); // closed → opening → open
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const byId = useLetter(id);
   const byToken = useLetterByToken(token);
@@ -44,6 +48,36 @@ export default function TreasureChest() {
     );
   }
 
+  // Neither an id nor a token in the URL: nothing to haul ashore.
+  if (!letter) {
+    return (
+      <EmptyState
+        title="Treasure not found"
+        description="There's no chest at this heading."
+        action={
+          <Link to="/log" className="inline-flex items-center gap-2 text-gold hover:underline">
+            <ArrowLeft className="h-4 w-4" /> Back to Our Log
+          </Link>
+        }
+      />
+    );
+  }
+
+  // Reached by URL before the tides delivered it — the body isn't sent at all.
+  if (letter.sealed) {
+    return (
+      <EmptyState
+        title="Still sealed"
+        description={`This chest opens on ${formatDate(letter.deliveryDate)}.`}
+        action={
+          <Link to="/log" className="inline-flex items-center gap-2 text-gold hover:underline">
+            <ArrowLeft className="h-4 w-4" /> Back to Our Log
+          </Link>
+        }
+      />
+    );
+  }
+
   const isFromSelf = letter.letterType === "self";
   const senderName = letter.senderInfo?.displayName;
   const fromLabel = isFromSelf ? "from your past self" : senderName ? `from ${senderName}` : "from your crew";
@@ -53,6 +87,7 @@ export default function TreasureChest() {
   const fx = fxFor(letter.capsuleTheme);
 
   const openChest = () => {
+    playChestOpenSound();
     if (reducedMotion()) return setPhase("open");
     setPhase("opening");
     setTimeout(() => setPhase("open"), 1500);
@@ -118,24 +153,41 @@ export default function TreasureChest() {
 
               {voice ? (
                 <div className="mt-6">
-                  <p className="mb-1 flex items-center gap-1.5 text-xs uppercase tracking-wider text-ink/50">
-                    <Volume2 className="h-3.5 w-3.5" /> A voice from that day
-                  </p>
-                  <audio controls src={voice.secureUrl} className="w-full" />
+                  <GramophonePlayer voice={voice} />
                 </div>
               ) : null}
 
               {photos.length ? (
-                <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {photos.map((p) => (
-                    <a key={p._id} href={p.secureUrl} target="_blank" rel="noreferrer">
-                      <img
-                        src={p.secureUrl}
-                        alt={p.originalName || "a captured memory"}
-                        className="h-28 w-full rounded-lg object-cover shadow"
-                      />
-                    </a>
-                  ))}
+                <div className="mt-6">
+                  <p className="mb-2 text-xs font-display uppercase tracking-wider text-ink/70 font-bold">
+                    📸 Captured Memories ({photos.length})
+                  </p>
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    {photos.map((p, idx) => (
+                      <button
+                        key={p._id}
+                        type="button"
+                        onClick={() => setLightboxIndex(idx)}
+                        className="group relative h-28 sm:h-32 w-full overflow-hidden rounded-xl border border-amber-900/20 bg-ink/10 shadow hover:border-gold transition focus:outline-none"
+                      >
+                        <img
+                          src={p.secureUrl}
+                          alt={p.originalName || "a captured memory"}
+                          className="h-full w-full object-cover transition group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold font-display">
+                          <span>View Memory</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <PhotoLightbox
+                    photos={photos}
+                    currentIndex={lightboxIndex}
+                    onClose={() => setLightboxIndex(null)}
+                    onIndexChange={setLightboxIndex}
+                  />
                 </div>
               ) : null}
 
@@ -144,12 +196,48 @@ export default function TreasureChest() {
                   <SongEmbed song={letter.song} />
                 </div>
               ) : null}
+
+              {/* Guest CTA Banner */}
+              {token ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-8 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-amber-900/20 to-transparent p-5 text-center shadow-lg"
+                >
+                  <p className="font-display text-lg text-amber-300 mb-1">
+                    ⚓ You've opened a Grand Line treasure capsule!
+                  </p>
+                  <p className="text-xs text-sand-dim mb-4">
+                    Join HeyFutureJasmine! to seal your own letters, photos, and songs across time to yourself or your crew.
+                  </p>
+                  <div className="flex items-center justify-center gap-3">
+                    <Link
+                      to="/register"
+                      className="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-ocean-abyss text-xs font-bold font-display tracking-wider transition-all"
+                    >
+                      Join the Crew (Free)
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="px-4 py-2 rounded-full border border-white/20 hover:border-amber-400 text-sand text-xs font-medium transition-all"
+                    >
+                      Log In
+                    </Link>
+                  </div>
+                </motion.div>
+              ) : null}
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-              <Link to="/log" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold">
-                <ArrowLeft className="h-4 w-4" /> Back to Our Log
-              </Link>
+              {token ? (
+                <Link to="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold">
+                  <ArrowLeft className="h-4 w-4" /> Return to Shore
+                </Link>
+              ) : (
+                <Link to="/log" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold">
+                  <ArrowLeft className="h-4 w-4" /> Back to Our Log
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={writeBack}

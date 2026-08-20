@@ -35,6 +35,6 @@ export async function uploadToCloudinary(buffer, folder, resourceType = "auto") 
 }
 
 export async function deleteFromCloudinary(publicId, resourceType = "image") {
-  if (!publicId) return;
+  if (!publicId || !isCloudinaryConfigured()) return;
   return cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 }

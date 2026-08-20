@@ -437,6 +437,29 @@ async function main() {
     // Attachment delete endpoint requires authentication and ownership
     const delPhotoRes = await req("DELETE", `/uploads/${photoAttachment._id}`, { token: paul.accessToken });
     check("delete attachment returns 204", delPhotoRes.status === 204);
+
+    // Song Embeds & Media Integrations E2E Tests (HFJ-013)
+    const songLetter = await Letter.create({
+      sender: paulDoc._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: "paul.test@x.io",
+      recipientName: "Paul",
+      subject: "Grand Line Anthem",
+      body: "<p>Listen to our pirate anthem!</p>",
+      deliveryDate: new Date(Date.now() + 1000),
+      song: {
+        provider: "spotify",
+        url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
+        title: "We Are!",
+        artist: "Hiroshi Kitadani"
+      },
+      status: "delivered",
+      deliveredAt: new Date()
+    });
+
+    const songLetterRes = await req("GET", `/letters/${songLetter._id}`, { token: paul.accessToken });
+    check("delivered letter preserves song embed metadata", songLetterRes.data?.letter?.song?.title === "We Are!" && songLetterRes.data?.letter?.song?.provider === "spotify");
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

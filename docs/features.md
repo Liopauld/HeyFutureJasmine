@@ -55,6 +55,11 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Photo Dropzone:** Enhanced `PhotoDropzone.jsx` with multi-image drop support, upload spinner, and thumbnail deletion.
 - **Interactive Photo Lightbox:** Created `PhotoLightbox.jsx` supporting arrow key navigation, keyboard Esc shortcuts, full-screen zoom, and direct download links.
 - **Chest Lightbox Integration:** Integrated click-to-open photo lightbox gallery in `TreasureChest.jsx`.
-- **E2E Smoke Tests:** Added automated assertions in `smoke.js` testing photo attachment classification and deletion endpoint.
+### HFJ-013: Music & Song Embed Integrations (Sprint 4)
+- **Multi-Provider Song Support:** Built URL parsing and canonical iframe embeds for Spotify, YouTube, and Apple Music in `song.js`.
+- **Composer Song Preview:** Enhanced `SongInput.jsx` with automatic provider detection, title/artist tagging, and instant preview pills.
+- **Chest Soundtrack Player:** Rendered embedded responsive audio player widget at the top of delivered treasure chests in `TreasureChest.jsx`.
+- **E2E Smoke Tests:** Added automated assertions in `smoke.js` verifying song metadata serialization and delivered letter persistence.
+
 
 

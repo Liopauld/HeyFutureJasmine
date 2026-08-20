@@ -23,6 +23,18 @@ export function youtubeId(url) {
   }
 }
 
+export function appleMusicEmbed(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("music.apple.com")) {
+      return `https://embed.music.apple.com${u.pathname}${u.search}`;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 /** An embeddable iframe URL for a saved song, or null if not embeddable. */
 export function songEmbedUrl(song) {
   if (!song?.url) return null;
@@ -32,6 +44,7 @@ export function songEmbedUrl(song) {
     const id = youtubeId(song.url);
     return id ? `https://www.youtube.com/embed/${id}` : null;
   }
+  if (provider === "apple") return appleMusicEmbed(song.url);
   return null;
 }
 

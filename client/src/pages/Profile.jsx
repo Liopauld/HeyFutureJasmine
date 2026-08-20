@@ -97,34 +97,99 @@ export default function Profile() {
       <h1 className="font-display text-3xl text-gold">Wanted Poster</h1>
 
       {/* Poster */}
-      <div className="wanted-poster rounded-3xl p-6 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.4em] text-ink/70">Wanted</p>
-        <div className="relative mx-auto mt-3 h-28 w-28">
+      <div className="wanted-poster relative overflow-hidden rounded-3xl p-6 sm:p-8 text-center shadow-2xl border-2 border-amber-900/30">
+        <div className="flex items-center justify-between px-2 mb-2">
+          <span className="font-serif text-[10px] tracking-[0.3em] uppercase text-ink/60 font-bold">Marine Headquarters</span>
+          <span className="font-serif text-[10px] tracking-[0.3em] uppercase text-ink/60 font-bold">Grand Line Issue</span>
+        </div>
+
+        <p className="text-sm font-bold uppercase tracking-[0.5em] text-ink font-display text-2xl border-y-2 border-ink/20 py-1 my-2">
+          DEAD OR ALIVE
+        </p>
+
+        <div className="relative mx-auto mt-4 h-32 w-32">
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="group h-28 w-28 overflow-hidden rounded-xl border-2 border-ink/20 bg-ink/5"
+            className="group h-32 w-32 overflow-hidden rounded-2xl border-4 border-ink/20 bg-ink/5 shadow-inner"
             aria-label="Change portrait"
           >
             {user?.avatar?.url ? (
               <img src={user.avatar.url} alt="" className="h-full w-full object-cover" />
             ) : (
-              <span className="flex h-full w-full items-center justify-center font-display text-5xl text-ink/40">
+              <span className="flex h-full w-full items-center justify-center font-display text-6xl text-ink/40">
                 {(user?.displayName || user?.username || "?")[0].toUpperCase()}
               </span>
             )}
-            <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-ink/60 py-1 text-[10px] text-white opacity-0 transition group-hover:opacity-100">
-              <Camera className="h-3 w-3" /> Change
+            <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-ink/75 py-1.5 text-[11px] text-white font-medium opacity-0 transition group-hover:opacity-100">
+              <Camera className="h-3.5 w-3.5" /> Change Portrait
             </span>
           </button>
           <input ref={fileRef} type="file" accept="image/*" onChange={uploadAvatar} className="hidden" />
         </div>
-        <h2 className="mt-3 font-display text-4xl text-ink">{user?.displayName || user?.username}</h2>
-        <p className="mt-1 text-sm uppercase tracking-widest text-ink/60">{user?.pirateTitle}</p>
-        <p className="mt-3 font-display text-2xl text-ink">฿{(user?.bounty || 0).toLocaleString()}</p>
+
+        <h2 className="mt-4 font-display text-4xl sm:text-5xl text-ink tracking-wide">
+          {user?.displayName || user?.username}
+        </h2>
+        
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ink/10 border border-ink/15 text-xs font-bold font-display uppercase tracking-widest text-ink mt-2">
+          <span>🏴‍☠️</span>
+          <span>{user?.pirateTitle || "Landlubber"}</span>
+        </div>
+
+        {/* Bounty */}
+        <div className="mt-4 pt-3 border-t border-ink/15">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-ink/60 font-semibold mb-1">Bounty Amount</p>
+          <p className="font-display text-3xl sm:text-4xl text-ink font-bold tracking-wider drop-shadow-sm">
+            ฿{(user?.bounty || 0).toLocaleString()}
+          </p>
+          <p className="text-[10px] text-ink/50 uppercase tracking-widest mt-1">Kono sakuhin wa fiction dethunode</p>
+        </div>
+
         {user?.anniversary ? (
-          <p className="mt-2 text-sm text-ink/60">Sailing together since {formatDate(user.anniversary)}</p>
+          <p className="mt-3 text-xs text-ink/70 font-serif italic">
+            Sailing the Grand Line together since {formatDate(user.anniversary)}
+          </p>
         ) : null}
+      </div>
+
+      {/* Pirate Rank Tier Guide */}
+      <div className="rounded-3xl border border-grand-line bg-deep-sea/50 p-5 space-y-3">
+        <h3 className="font-display text-lg text-gold flex items-center gap-2">
+          <span>⚓</span> Pirate Rank Progression
+        </h3>
+        <p className="text-xs text-text-muted">
+          Your bounty rises as you seal more time capsules across the Grand Line.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+          {[
+            { rank: "Landlubber", letters: "0 letters", bounty: "฿0" },
+            { rank: "Rookie Pirate", letters: "1-3 letters", bounty: "฿1,000,000" },
+            { rank: "Sea Dog", letters: "4-10 letters", bounty: "฿50,000,000" },
+            { rank: "Warlord of Letters", letters: "11-25 letters", bounty: "฿300,000,000" },
+            { rank: "Yonko Scribe", letters: "26-50 letters", bounty: "฿1,000,000,000" },
+            { rank: "Pirate King", letters: "51+ letters", bounty: "฿1,500,000,000" }
+          ].map((tier, idx) => {
+            const isCurrent = (user?.pirateTitle || "Landlubber") === tier.rank;
+            return (
+              <div
+                key={idx}
+                className={`p-3 rounded-2xl border text-left transition-all ${
+                  isCurrent
+                    ? "bg-amber-500/20 border-amber-400 text-sand shadow-[0_0_12px_rgba(245,166,35,0.2)]"
+                    : "bg-surface-elevated/40 border-white/5 text-sand-dim"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-xs font-display text-sand">{tier.rank}</span>
+                  {isCurrent && <span className="text-[10px] font-bold text-amber-300">Active</span>}
+                </div>
+                <p className="text-[11px] text-amber-300/90 font-mono font-semibold">{tier.bounty}</p>
+                <p className="text-[10px] text-sand-dim/60 mt-0.5">{tier.letters}</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Edit */}

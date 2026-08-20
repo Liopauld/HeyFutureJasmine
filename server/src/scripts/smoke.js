@@ -293,6 +293,37 @@ async function main() {
     // Verify letter in DB is still sealed
     const futureDocAfter = await Letter.findById(futureCapsule._id);
     check("superpeek does not modify sealed status in database", futureDocAfter.status === "sealed");
+
+    // Pirate Rank Progression & Bounty Showcase E2E Tests (HFJ-004)
+    const { rankFor } = await import("../controllers/letterController.js");
+    check("rankFor: 0 letters = Landlubber (฿0)", rankFor(0).title === "Landlubber" && rankFor(0).bounty === 0);
+    check("rankFor: 1 letter = Rookie Pirate (฿1,000,000)", rankFor(1).title === "Rookie Pirate" && rankFor(1).bounty === 1_000_000);
+    check("rankFor: 4 letters = Sea Dog (฿50,000,000)", rankFor(4).title === "Sea Dog" && rankFor(4).bounty === 50_000_000);
+    check("rankFor: 11 letters = Warlord of Letters (฿300,000,000)", rankFor(11).title === "Warlord of Letters" && rankFor(11).bounty === 300_000_000);
+    check("rankFor: 26 letters = Yonko Scribe (฿1,000,000,000)", rankFor(26).title === "Yonko Scribe" && rankFor(26).bounty === 1_000_000_000);
+    check("rankFor: 51 letters = Pirate King (฿1,500,000,000)", rankFor(51).title === "Pirate King" && rankFor(51).bounty === 1_500_000_000);
+
+    // Register a fresh pirate to verify starting rank
+    const luffy = (await req("POST", "/auth/register", {
+      body: { username: "MonkeyDLuffy", email: "luffy@sunny.sea", password: "grandlinepirate" }
+    })).data;
+    const luffyDoc = await User.findOne({ email: "luffy@sunny.sea" });
+    check("new user starts as Landlubber with 0 bounty", luffyDoc.pirateTitle === "Landlubber" && luffyDoc.bounty === 0);
+
+    // Verify email and create first letter -> rank updates to Rookie Pirate
+    await req("GET", `/auth/verify-email/${luffyDoc.emailVerificationToken}`);
+    await req("POST", "/letters", {
+      token: luffy.accessToken,
+      body: {
+        letterType: "self",
+        subject: "Becoming Pirate King",
+        body: "<p>I will find the One Piece!</p>",
+        deliveryDate: new Date(Date.now() + 10 * 24 * 3600 * 1000).toISOString()
+      }
+    });
+
+    const luffyDocAfter = await User.findOne({ email: "luffy@sunny.sea" });
+    check("user profile automatically bumps to Rookie Pirate (฿1,000,000)", luffyDocAfter.pirateTitle === "Rookie Pirate" && luffyDocAfter.bounty === 1_000_000);
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

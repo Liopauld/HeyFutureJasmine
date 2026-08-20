@@ -8,7 +8,7 @@ import { canEditLetter } from "../services/letterService.js";
 import { sendLetterSealedEmail } from "../services/emailService.js";
 
 /** Light pirate-rank progression by letters sent. */
-function rankFor(count) {
+export function rankFor(count) {
   if (count >= 51) return { title: "Pirate King", bounty: 1_500_000_000 };
   if (count >= 26) return { title: "Yonko Scribe", bounty: 1_000_000_000 };
   if (count >= 11) return { title: "Warlord of Letters", bounty: 300_000_000 };
@@ -370,6 +370,17 @@ export async function deleteLetter(req, res, next) {
       await letterQueue.remove(`letter-${letter._id}`).catch(() => {});
     }
     await letter.deleteOne();
+
+    // Re-sync sender's rank after deletion
+    const sender = await User.findById(req.user.id);
+    if (sender) {
+      const count = await Letter.countDocuments({ sender: sender._id });
+      const { title, bounty } = rankFor(count);
+      sender.pirateTitle = title;
+      sender.bounty = bounty;
+      await sender.save();
+    }
+
     return res.status(204).send();
   } catch (error) {
     return next(error);

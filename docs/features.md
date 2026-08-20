@@ -18,4 +18,9 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Client DevInspectorBar:** Added floating developer bar with 1-click MongoDB reliability sweep trigger and dev tools status.
 - **LetterCard SuperPeek Button:** Integrated instant SuperPeek drawer/modal in dev mode directly from Captain's Log.
 - **E2E Smoke Tests:** Added automated assertions in `smoke.js` validating SuperPeek payload and database immutability.
-
+### HFJ-004: Pirate Rank Progression & Bounty Showcase (Sprint 1)
+- **Rank Tier Calculation:** Configured dynamic pirate titles and bounty scaling: Landlubber (฿0), Rookie Pirate (฿1,000,000), Sea Dog (฿50,000,000), Warlord of Letters (฿300,000,000), Yonko Scribe (฿1,000,000,000), Pirate King (฿1,500,000,000).
+- **Auto-Sync:** User profile in MongoDB automatically syncs bounty and title whenever letters are sealed or deleted.
+- **Wanted Poster UI:** Implemented authentic 'DEAD OR ALIVE' poster on `/profile` with portrait upload, golden bounty counter, and visual rank tier guide.
+- **Navbar Badge:** Displayed active pirate title pill directly in navigation bar.
+- **E2E Smoke Tests:** Added unit and integration assertions in `smoke.js` exercising all rank tiers and new user registration defaults.

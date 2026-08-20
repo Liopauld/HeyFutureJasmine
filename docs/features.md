@@ -66,7 +66,11 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Letter Threading API:** Enabled `replyTo` relationship tracking and populated thread previews with parent letter subject and sender details.
 - **Composer Reply Banner:** Added `location.state.replyTo` handling with an informative link banner and unlink capability in `WriteLetter.jsx`.
 - **Delivered Thread Viewer:** Created `LetterThreadCard.jsx` displaying the linked past time capsule with 1-click navigation in `TreasureChest.jsx`.
-- **E2E Smoke Tests:** Added automated assertions in `smoke.js` verifying reply letter creation and thread preview population.
+### HFJ-016: Interactive Canvas Wanted Poster PNG Card Exporter (Sprint 5)
+- **Canvas Poster Generator:** Created `canvasPosterExport.js` rendering a 1200x1600 high-res authentic One Piece wanted poster with user avatar, title, and formatted bounty.
+- **Direct Download & Web Share:** Added 1-click 'Download Poster (PNG)' button and mobile Web Share API integration in `Profile.jsx`.
+- **E2E Smoke Tests:** Retained full green status across 59/59 in-memory assertions.
+
 
 
 

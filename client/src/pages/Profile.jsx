@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera } from "lucide-react";
+import { Camera, Download, Share2, Loader2 } from "lucide-react";
 import api from "../lib/api.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useAuthStore } from "../store/authStore.js";
@@ -9,6 +9,7 @@ import Field from "../components/ui/Field.jsx";
 import PartnerPairCard from "../components/auth/PartnerPairCard.jsx";
 import CrewManager from "../components/profile/CrewManager.jsx";
 import { formatDate } from "../lib/dates.js";
+import { downloadPoster, sharePoster } from "../lib/canvasPosterExport.js";
 
 const toDateInput = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : "");
 
@@ -18,17 +19,36 @@ export default function Profile() {
   const fileRef = useRef(null);
 
   const updateProfile = useUpdateProfile();
-  const createInvite = useCreatePairInvite();
-  const acceptInvite = useAcceptPairInvite();
-  const unpair = useUnpair();
+  const [isExporting, setIsExporting] = useState(false);
 
   const [form, setForm] = useState({
     displayName: user?.displayName || "",
     anniversary: toDateInput(user?.anniversary)
   });
-  const [inviteCode, setInviteCode] = useState("");
-  const [enteredCode, setEnteredCode] = useState("");
-  const [copied, setCopied] = useState(false);
+
+  const handleDownloadPoster = async () => {
+    try {
+      setIsExporting(true);
+      await downloadPoster(user);
+      toast.success("Bounty poster downloaded!");
+    } catch {
+      toast.error("Couldn't generate poster canvas.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleSharePoster = async () => {
+    try {
+      setIsExporting(true);
+      const shared = await sharePoster(user);
+      if (shared) toast.success("Bounty poster shared!");
+    } catch {
+      toast.error("Couldn't share poster.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const saveProfile = async (e) => {
     e.preventDefault();
@@ -148,6 +168,28 @@ export default function Profile() {
             Sailing the Grand Line together since {formatDate(user.anniversary)}
           </p>
         ) : null}
+
+        {/* Poster Actions */}
+        <div className="mt-4 flex items-center justify-center gap-2 pt-3 border-t border-ink/15 flex-wrap">
+          <button
+            type="button"
+            onClick={handleDownloadPoster}
+            disabled={isExporting}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ink/15 hover:bg-ink/25 text-ink text-xs font-display font-bold uppercase tracking-wider transition disabled:opacity-50"
+          >
+            {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+            <span>Download Poster (PNG)</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleSharePoster}
+            disabled={isExporting}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ink/15 hover:bg-ink/25 text-ink text-xs font-display font-bold uppercase tracking-wider transition disabled:opacity-50"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share</span>
+          </button>
+        </div>
       </div>
 
       {/* Pirate Rank Tier Guide */}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#150C22"/>
+  <!-- chest lid -->
+  <path d="M12 28a20 20 0 0 1 40 0z" fill="#8B5A2B" stroke="#E7B44A" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- chest body -->
+  <rect x="12" y="28" width="40" height="22" rx="3" fill="#A9682F" stroke="#E7B44A" stroke-width="2.5"/>
+  <!-- iron bands -->
+  <path d="M12 34h40M12 44h40" stroke="#E7B44A" stroke-width="2" opacity="0.55"/>
+  <!-- lock -->
+  <rect x="27" y="31" width="10" height="12" rx="2" fill="#E7B44A"/>
+  <circle cx="32" cy="36" r="2.2" fill="#150C22"/>
+</svg>

@@ -1,0 +1,52 @@
+{
+  "sprint": 2,
+  "title": "Sprint 2: Mobile Experience, PWA Offline & Audio Effects",
+  "goal": "Enhance mobile web touch interactions, add Progressive Web App offline caching and installation support, and add immersive ocean soundscapes to the chest reveal.",
+  "status": "backlog",
+  "startDate": "2026-09-04",
+  "targetDate": "2026-09-18",
+  "issues": [
+    {
+      "id": "HFJ-006",
+      "title": "[PWA & Mobile] Offline Caching & Add to Home Screen Support",
+      "labels": ["mobile", "pwa", "frontend", "sprint-2", "priority:medium"],
+      "priority": "medium",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a mobile user, I want to install HeyFutureJasmine! as a PWA on my iPhone/Android home screen and have cached assets load instantly even on slow connections.",
+      "technical_scope": {
+        "client_config": ["client/public/site.webmanifest", "client/index.html", "client/vite.config.js"],
+        "client_services": ["client/src/service-worker.js"]
+      },
+      "acceptance_criteria": [
+        "Web app manifest provides icons, theme colors (#150c22), and standalone display mode.",
+        "Service worker caches static CSS, fonts, and map textures for offline resilience.",
+        "Offline fallback page informs user when offline without white-screen crash."
+      ],
+      "end_to_end_test_plan": [
+        "1. [PWA Test] Audit site with Chrome DevTools Lighthouse -> verify PWA criteria pass.",
+        "2. [Offline Test] Toggle browser offline mode -> navigate between pages -> verify cached shell and offline indicator render cleanly."
+      ]
+    },
+    {
+      "id": "HFJ-007",
+      "title": "[Media & Audio] Atmospheric Ocean Sounds & Reveal Audio",
+      "labels": ["audio", "ux", "frontend", "sprint-2", "priority:low"],
+      "priority": "low",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a user opening a delivered treasure chest, I want optional atmospheric sounds (gentle ocean tide, creaking chest lid opening) so the reveal feels truly magical.",
+      "technical_scope": {
+        "client_components": ["client/src/components/effects/AmbientAudio.jsx", "client/src/pages/TreasureChest.jsx"],
+        "assets": ["client/public/audio/tides.mp3", "client/public/audio/chest-open.mp3"]
+      },
+      "acceptance_criteria": [
+        "Subtle sound effects play when 3D chest opens during reveal ceremony.",
+        "Sound respects user preference (muted by default with persistent volume/unmute toggle in navbar).",
+        "No audio errors or blocking on mobile Safari."
+      ],
+      "end_to_end_test_plan": [
+        "1. [UI Audio Test] Open delivered chest on desktop and mobile -> verify sound plays smoothly when unmuted.",
+        "2. [State Test] Mute sound -> verify preference is preserved in localStorage."
+      ]
+    }
+  ]
+}

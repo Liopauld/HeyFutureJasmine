@@ -1,0 +1,146 @@
+{
+  "sprint": 1,
+  "title": "Sprint 1: Public Noticeboard, External Recipients & Full Scope Delivery",
+  "goal": "Re-integrate the public noticeboard with Trident likes, broaden recipient support for external emails with single-use guest unlock links, build the Dev SuperPeek inspector, and enforce full end-to-end testing for every issue.",
+  "status": "active",
+  "startDate": "2026-08-20",
+  "targetDate": "2026-09-03",
+  "issues": [
+    {
+      "id": "HFJ-001",
+      "title": "[Feature] Public Noticeboard Feed & Trident Salute System",
+      "labels": ["feature", "frontend", "backend", "sprint-1", "priority:high"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a user or guest, I want to browse anonymously shared letters that have reached their delivery date and salute them with Trident likes, so I can be inspired by letters sailing across time.",
+      "technical_scope": {
+        "models": ["server/src/models/Letter.js (add visibility enum, likes counter)"],
+        "controllers": ["server/src/controllers/letterController.js (getPublicLetters, likeLetter)"],
+        "routes": ["server/src/routes/letters.js (GET /public, POST /:id/like)"],
+        "client_pages": ["client/src/pages/Noticeboard.jsx"],
+        "client_components": ["client/src/components/letter/PublicLetterCard.jsx", "client/src/components/letter/TridentButton.jsx"],
+        "schemas": ["shared/schemas/letterSchema.js (visibility enum)"]
+      },
+      "acceptance_criteria": [
+        "Letter model includes visibility enum ('private', 'public_anonymous', 'public_named') and likes integer.",
+        "GET /api/letters/public returns only delivered public letters, excluding sealed or private letters.",
+        "Noticeboard supports sorting by: 'recent', 'most_liked', and 'long_journey'.",
+        "Public anonymous letters mask sender name/avatar and show a random pirate alias (e.g., 'Ghost of Jaya').",
+        "POST /api/letters/:id/like increments the like count and is rate-limited to prevent spam.",
+        "Noticeboard is accessible to unauthenticated guests and authenticated users."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] Create Letter A (visibility: 'public_anonymous', deliveryDate: past). Force deliver letter. Query GET /api/letters/public -> verify Letter A is returned with sender details redacted.",
+        "2. [API Test] Create Letter B (visibility: 'private', deliveryDate: past). Query GET /api/letters/public -> verify Letter B is NOT returned.",
+        "3. [UI Test] Navigate to /noticeboard in an unauthenticated incognito window. Verify masonry feed loads public letters.",
+        "4. [UI Test] Click the Trident (🔱) salute button on a card -> verify counter increments with micro-animation and state persists on refresh.",
+        "5. [Automated] Add test assertion to server/src/scripts/smoke.js validating public feed filtering and like increment."
+      ]
+    },
+    {
+      "id": "HFJ-002",
+      "title": "[Feature] Arbitrary External Recipient Flow & Guest Unlock Link",
+      "labels": ["feature", "frontend", "backend", "sprint-1", "priority:high"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a sender, I want to write and seal a letter to any email address (even if they do not have an account), so they receive a single-use unlock link to view their treasure chest without mandatory registration.",
+      "technical_scope": {
+        "models": ["server/src/models/Letter.js (unlockToken sparse index)"],
+        "controllers": ["server/src/controllers/letterController.js (createLetter arbitrary email support, unlockLetter)"],
+        "services": ["server/src/services/emailService.js (format guest unlock URL in delivery email)"],
+        "client_components": ["client/src/components/letter/RecipientPicker.jsx (add 'Other Nakama' email input, 'Add to Crew' checkbox)"],
+        "client_pages": ["client/src/pages/TreasureChest.jsx (support guest unlock view with register CTA)"]
+      },
+      "acceptance_criteria": [
+        "RecipientPicker allows switching between: 'Myself', 'My Partner' (if paired), and 'Other Nakama (Any Email)'.",
+        "When sent to an external email, a cryptographically secure UUIDv4 unlockToken is generated.",
+        "On delivery, the email sent via Resend contains a direct link: `${CLIENT_URL}/unlock/${unlockToken}`.",
+        "Accessing `/unlock/:token` displays the delivered letter with full 3D chest reveal without requiring auth.",
+        "Guest reveal page displays a friendly 'Join the crew to seal your own letters' banner.",
+        "If 'Add to Crew' was checked, recipient is added to sender's crewMembers array in MongoDB."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] POST /api/letters with recipientEmail 'guest.friend@domain.com' -> verify unlockToken is generated.",
+        "2. [API Test] Force deliver letter -> verify delivery email logs link with unlock token.",
+        "3. [UI Test] In incognito window (no auth cookie/token), navigate to /unlock/<token> -> verify chest opening animation plays and reveals content.",
+        "4. [Security Test] Verify that querying an invalid or expired token returns a clean 404 seafaring error page ('Lost at Sea').",
+        "5. [Automated] Include guest unlock assertion in server/src/scripts/smoke.js."
+      ]
+    },
+    {
+      "id": "HFJ-003",
+      "title": "[Feature] Admin SuperPeek & Dev Letter Inspector",
+      "labels": ["developer-experience", "backend", "frontend", "sprint-1", "priority:medium"],
+      "priority": "medium",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a developer or tester in local/staging environments, I want an admin SuperPeek tool to inspect sealed letters without altering database delivery dates, so I can verify content formatting and debugging workflows.",
+      "technical_scope": {
+        "routes": ["server/src/routes/dev.js (add GET /peek/:id)"],
+        "controllers": ["server/src/controllers/letterController.js (getLetterForSuperPeek)"],
+        "client_components": ["client/src/components/common/DevInspectorBar.jsx"]
+      },
+      "acceptance_criteria": [
+        "GET /api/dev/peek/:id returns the full unredacted letter body regardless of delivery date ONLY when ENABLE_DEV_ROUTES=true.",
+        "In production environments (NODE_ENV=production), dev routes are completely disabled and return 404.",
+        "In local client dev mode, Captain's Log displays a 'SuperPeek' badge/button on sealed cards allowing instant preview.",
+        "Quick 'Force Deliver' and 'Trigger Sweep' buttons are accessible from the Dev Inspector Bar."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] Create a letter sealed 5 years in future. Call GET /api/dev/peek/:id with valid dev token -> verify unredacted body is returned.",
+        "2. [Security Test] Set ENABLE_DEV_ROUTES=false -> call /api/dev/peek/:id -> verify HTTP 404.",
+        "3. [UI Test] In local dev mode, click 'SuperPeek' on a sealed letter in /log -> verify letter modal previews body without marking letter as delivered.",
+        "4. [Automated] Validate dev route toggle in server smoke tests."
+      ]
+    },
+    {
+      "id": "HFJ-004",
+      "title": "[Feature] Pirate Rank Progression & Bounty Showcase",
+      "labels": ["gamification", "frontend", "backend", "sprint-1", "priority:medium"],
+      "priority": "medium",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a user, I want my pirate rank and bounty to level up on my Wanted Poster as I seal letters across the Grand Line, so I feel rewarded for writing time capsules.",
+      "technical_scope": {
+        "controllers": ["server/src/controllers/letterController.js (sync rank/bounty on createLetter)"],
+        "client_pages": ["client/src/pages/Profile.jsx (animate bounty counter, badges)"],
+        "client_components": ["client/src/components/layout/Navbar.jsx (display rank badge next to avatar)"]
+      },
+      "acceptance_criteria": [
+        "Bounty and title tier rules: 0 letters = 'Landlubber' (฿0), 1-3 = 'Rookie Pirate' (฿1,000,000), 4-10 = 'Sea Dog' (฿50,000,000), 11-25 = 'Warlord of Letters' (฿300,000,000), 26-50 = 'Yonko Scribe' (฿1,000,000,000), 51+ = 'Pirate King' (฿1,500,000,000).",
+        "User profile in MongoDB updates bounty and pirateTitle automatically when letters are created.",
+        "Profile Wanted Poster features a golden animated bounty counter and pirate title ribbon.",
+        "Navbar displays pirate title and badge."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] Register new user -> verify initial bounty is 0 and rank is 'Landlubber'.",
+        "2. [API Test] Create first letter -> verify user document updates to 'Rookie Pirate' with ฿1,000,000 bounty.",
+        "3. [UI Test] Navigate to /profile -> verify Wanted Poster renders username, avatar, pirate rank, and formatted bounty.",
+        "4. [Automated] Add rank calculation unit test in server test harness."
+      ]
+    },
+    {
+      "id": "HFJ-005",
+      "title": "[Security & Reliability] 24-Hour Edit Lock & End-to-End Suite",
+      "labels": ["security", "reliability", "backend", "frontend", "sprint-1", "priority:high"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a sender, I want clear feedback that my letter is locked once it is within 24 hours of delivery, so I know it is actively sailing and cannot be tampered with.",
+      "technical_scope": {
+        "controllers": ["server/src/controllers/letterController.js (canEditLetter helper, HTTP 423 handling)"],
+        "client_pages": ["client/src/pages/WriteLetter.jsx (lock status banner and disabled fields)"],
+        "scripts": ["server/src/scripts/smoke.js (full E2E test verification)"]
+      },
+      "acceptance_criteria": [
+        "Letters within 24 hours of deliveryDate return HTTP 423 Locked for GET /:id/edit, PATCH /:id, and DELETE /:id.",
+        "UI displays locked status badge with tooltip: '⚠️ This letter is within 24 hours of delivery and is sealed for voyage.'",
+        "Smoke test suite exercises 100% of auth, pairing, lock window, bullmq, sweep, and reveal paths.",
+        "All npm run smoke assertions pass."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] Create letter 12 hours from now. Attempt PATCH /api/letters/:id -> verify HTTP 423 response.",
+        "2. [API Test] Attempt DELETE /api/letters/:id -> verify HTTP 423 response.",
+        "3. [UI Test] Open /write/:id/edit for locked letter -> verify inputs are disabled and banner informs user.",
+        "4. [Automated] Run npm run smoke -> verify all checks pass cleanly."
+      ]
+    }
+  ]
+}

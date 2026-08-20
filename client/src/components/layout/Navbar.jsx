@@ -1,9 +1,11 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Anchor, PenLine, ScrollText, LogOut, UserRound } from "lucide-react";
+import { Anchor, PenLine, ScrollText, LogOut, UserRound, Sparkles } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth.js";
+import AmbientAudio from "../effects/AmbientAudio.jsx";
 
 const links = [
+  { to: "/noticeboard", label: "Noticeboard", icon: Sparkles },
   { to: "/write", label: "Write a Letter", icon: PenLine },
   { to: "/log", label: "Our Log", icon: ScrollText }
 ];
@@ -49,10 +51,15 @@ export default function Navbar() {
               <Link
                 to="/profile"
                 className="flex items-center gap-2 rounded-full border border-grand-line px-3 py-1.5 text-sm text-text-secondary transition hover:border-gold hover:text-gold"
+                title={`${user?.pirateTitle || "Landlubber"} • ฿${(user?.bounty || 0).toLocaleString()}`}
               >
-                <UserRound className="h-4 w-4" />
-                <span className="max-w-[10ch] truncate">{user?.displayName || user?.username}</span>
+                <UserRound className="h-4 w-4 text-gold" />
+                <span className="max-w-[10ch] truncate font-medium">{user?.displayName || user?.username}</span>
+                <span className="hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 font-mono">
+                  {user?.pirateTitle || "Landlubber"}
+                </span>
               </Link>
+              <AmbientAudio />
               <button
                 type="button"
                 onClick={handleLogout}
@@ -64,6 +71,7 @@ export default function Navbar() {
             </div>
           ) : status === "anonymous" ? (
             <div className="flex items-center gap-3 text-sm">
+              <AmbientAudio />
               <Link
                 to="/login"
                 className="rounded-full border border-gold px-4 py-1.5 text-gold transition hover:bg-gold hover:text-ocean"

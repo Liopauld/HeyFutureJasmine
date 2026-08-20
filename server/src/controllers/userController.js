@@ -54,7 +54,12 @@ export async function updateMe(req, res, next) {
     }
     if (displayName !== undefined) user.displayName = displayName;
     if (pirateTitle !== undefined) user.pirateTitle = pirateTitle;
-    if (anniversary !== undefined) user.anniversary = anniversary ? new Date(anniversary) : undefined;
+    if (anniversary !== undefined) {
+      user.anniversary = anniversary ? new Date(anniversary) : undefined;
+      if (user.partner) {
+        await User.findByIdAndUpdate(user.partner, { $set: { anniversary: user.anniversary } });
+      }
+    }
 
     await user.save();
     return res.json({ user: publicUser(user) });
@@ -159,8 +164,19 @@ export async function addCrewMember(req, res, next) {
   try {
     const { name, email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
+    
     const user = await User.findById(req.user.id);
-    user.crewMembers.push({ name, email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = user.crewMembers.find(
+      (m) => m.email?.toLowerCase() === normalizedEmail
+    );
+    if (existing) {
+      return res.status(400).json({ message: "This nakama is already in your crew address book." });
+    }
+
+    user.crewMembers.push({ name: name?.trim() || "", email: normalizedEmail });
     await user.save();
     return res.status(201).json({ crewMembers: user.crewMembers });
   } catch (error) {

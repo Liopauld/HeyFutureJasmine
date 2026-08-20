@@ -51,3 +51,33 @@ export function useUnpair() {
     }
   });
 }
+
+// ── Crew (saved contacts) ────────────────────────────────
+export function useCrew() {
+  return useQuery({
+    queryKey: ["crew"],
+    queryFn: async () => (await api.get("/users/me/crew")).data.crewMembers
+  });
+}
+
+export function useAddCrewMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => (await api.post("/users/me/crew", payload)).data.crewMembers,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crew"] });
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+    }
+  });
+}
+
+export function useRemoveCrewMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => api.delete(`/users/me/crew/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crew"] });
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+    }
+  });
+}

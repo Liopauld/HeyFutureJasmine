@@ -59,7 +59,11 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Multi-Provider Song Support:** Built URL parsing and canonical iframe embeds for Spotify, YouTube, and Apple Music in `song.js`.
 - **Composer Song Preview:** Enhanced `SongInput.jsx` with automatic provider detection, title/artist tagging, and instant preview pills.
 - **Chest Soundtrack Player:** Rendered embedded responsive audio player widget at the top of delivered treasure chests in `TreasureChest.jsx`.
-- **E2E Smoke Tests:** Added automated assertions in `smoke.js` verifying song metadata serialization and delivered letter persistence.
+### HFJ-014: Cinematic 3D Treasure Chest Unboxing & Confetti Ceremony (Sprint 5)
+- **3D Chest Animation:** Created `TreasureChest3D.jsx` featuring dynamic perspective transforms, rotating key-unlock effects, and theme-matching particle bursts.
+- **Canvas Confetti Launcher:** Built `GoldConfetti.jsx` launching a celebratory multi-colored golden confetti shower when unboxing delivered letters.
+- **Ceremony State Machine & Replay:** Implemented seamless ceremony progression (`closed` -> `unlocking` -> `opened` -> `open`) with a 1-click 'Replay Ceremony' option in `TreasureChest.jsx`.
+
 
 
 

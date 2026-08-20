@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, PenLine, Volume2 } from "lucide-react";
+import { ArrowLeft, PenLine, Volume2, Sparkles, RotateCcw } from "lucide-react";
 import { useLetter, useLetterByToken } from "../hooks/useLetters.js";
-import AnimatedChest from "../components/letter/AnimatedChest.jsx";
+import TreasureChest3D from "../components/letter/TreasureChest3D.jsx";
 import SongEmbed from "../components/letter/SongEmbed.jsx";
 import GramophonePlayer from "../components/letter/GramophonePlayer.jsx";
 import PhotoLightbox from "../components/letter/PhotoLightbox.jsx";
 import GoldDust from "../components/effects/GoldDust.jsx";
+import GoldConfetti from "../components/effects/GoldConfetti.jsx";
 import SparkBurst from "../components/effects/SparkBurst.jsx";
 import LoadingCompass from "../components/common/LoadingCompass.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
@@ -22,7 +23,8 @@ const reducedMotion = () =>
 export default function TreasureChest() {
   const { id, token } = useParams();
   const navigate = useNavigate();
-  const [phase, setPhase] = useState("closed"); // closed → opening → open
+  const [phase, setPhase] = useState("closed"); // closed → unlocking → opened → open
+  const [showConfetti, setShowConfetti] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const byId = useLetter(id);
@@ -88,9 +90,20 @@ export default function TreasureChest() {
 
   const openChest = () => {
     playChestOpenSound();
-    if (reducedMotion()) return setPhase("open");
-    setPhase("opening");
-    setTimeout(() => setPhase("open"), 1500);
+    if (reducedMotion()) {
+      setShowConfetti(true);
+      return setPhase("open");
+    }
+    setPhase("unlocking");
+    setTimeout(() => {
+      setPhase("opened");
+      setShowConfetti(true);
+      setTimeout(() => setPhase("open"), 1200);
+    }, 800);
+  };
+
+  const replayCeremony = () => {
+    setPhase("closed");
   };
 
   const writeBack = () =>
@@ -99,6 +112,7 @@ export default function TreasureChest() {
   return (
     <div className="relative mx-auto max-w-2xl">
       <GoldDust theme={letter.capsuleTheme} count={phase === "open" ? 8 : 16} />
+      <GoldConfetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
 
       <AnimatePresence mode="wait">
         {phase !== "open" ? (
@@ -108,35 +122,20 @@ export default function TreasureChest() {
             transition={{ duration: 0.35 }}
             className="relative flex flex-col items-center py-10 text-center"
           >
-            <motion.div
-              animate={
-                phase === "opening"
-                  ? { x: [0, -6, 6, -5, 5, -3, 3, 0], rotate: [0, -2, 2, -1.5, 1.5, -1, 1, 0] }
-                  : {}
-              }
-              transition={{ duration: 0.6 }}
-              className={phase === "closed" ? "animate-float" : ""}
-            >
-              <AnimatedChest theme={letter.capsuleTheme} open={phase === "opening"} size={220} />
-            </motion.div>
-            {phase === "opening" ? <SparkBurst theme={letter.capsuleTheme} /> : null}
+            <TreasureChest3D
+              theme={letter.capsuleTheme}
+              phase={phase}
+              onUnlock={openChest}
+              disabled={phase !== "closed"}
+            />
 
-            <p className="mt-6 text-sm uppercase tracking-[0.2em] text-text-muted">
+            <p className="mt-4 text-sm uppercase tracking-[0.2em] text-text-muted">
               A treasure has washed ashore
             </p>
             <h1 className="mt-2 font-display text-3xl text-gold sm:text-4xl">{letter.subject}</h1>
             <p className="mt-2 font-serif italic text-text-secondary">
               {fromLabel} · sealed {sealedAgo}
             </p>
-            {phase === "closed" ? (
-              <button
-                type="button"
-                onClick={openChest}
-                className="wax-seal mt-8 animate-wax-pulse text-sm uppercase tracking-wider"
-              >
-                🔓 Open the chest
-              </button>
-            ) : null}
           </motion.div>
         ) : (
           <motion.div key="letter" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
@@ -229,19 +228,29 @@ export default function TreasureChest() {
             </div>
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-              {token ? (
-                <Link to="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold">
-                  <ArrowLeft className="h-4 w-4" /> Return to Shore
-                </Link>
-              ) : (
-                <Link to="/log" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold">
-                  <ArrowLeft className="h-4 w-4" /> Back to Our Log
-                </Link>
-              )}
+              <div className="flex items-center gap-3">
+                {token ? (
+                  <Link to="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold text-sm">
+                    <ArrowLeft className="h-4 w-4" /> Return to Shore
+                  </Link>
+                ) : (
+                  <Link to="/log" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold text-sm">
+                    <ArrowLeft className="h-4 w-4" /> Back to Our Log
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={replayCeremony}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-sand-dim hover:text-sand transition"
+                  title="Replay 3D Unboxing Ceremony"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> Replay Ceremony
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={writeBack}
-                className="inline-flex items-center gap-2 rounded-full border border-gold px-5 py-2 text-gold transition hover:bg-gold hover:text-ocean"
+                className="inline-flex items-center gap-2 rounded-full border border-gold px-5 py-2 text-gold transition hover:bg-gold hover:text-ocean text-sm"
               >
                 <PenLine className="h-4 w-4" /> Write back across time
               </button>

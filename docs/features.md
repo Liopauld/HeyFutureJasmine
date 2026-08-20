@@ -72,7 +72,12 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 ### HFJ-017: Email Verification, Resend Transactional Templates & Password Reset (Sprint 6)
 - **Password Reset Lifecycle:** Built time-limited cryptographically secure password reset tokens (1-hour expiry) with refresh token invalidation upon password updates.
 - **Parchment Transactional Emails:** Designed responsive parchment HTML email templates with Pirate wax seal branding for verification and password reset flows.
-- **E2E Smoke Tests:** Added automated assertions in `smoke.js` verifying the complete forgot-password, reset-password, and new-login lifecycle.
+### HFJ-018: Redis BullMQ Fallback & Redundant MongoDB Cron Sweeper (Sprint 6)
+- **Zero-Downtime Delivery Sweeper:** Implemented atomic `findOneAndUpdate` claim pattern in `deliverLetter` to guarantee exactly-once delivery across BullMQ and background cron sweeps.
+- **Request-Triggered Sweeper:** Built `sweepOnRequest.js` middleware ensuring overdue letters deliver even on free-tier sleep cycles.
+- **Graceful Redis Degradation:** Configured resilient Redis client with bounded reconnect attempts falling back seamlessly to MongoDB sweeps.
+- **E2E Smoke Tests:** Verified failover sweep idempotency and overdue delivery execution without external Redis dependencies.
+
 
 
 

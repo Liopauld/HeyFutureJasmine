@@ -7,6 +7,7 @@ import { useAuthStore } from "../store/authStore.js";
 import { useUpdateProfile } from "../hooks/useUser.js";
 import Field from "../components/ui/Field.jsx";
 import PartnerPairCard from "../components/auth/PartnerPairCard.jsx";
+import CrewManager from "../components/profile/CrewManager.jsx";
 import { formatDate } from "../lib/dates.js";
 
 const toDateInput = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : "");
@@ -217,6 +218,9 @@ export default function Profile() {
 
       {/* Crew of two (pairing) */}
       <PartnerPairCard user={user} partner={partner} />
+
+      {/* Crew logbook & Address Book */}
+      <CrewManager />
     </section>
   );
 }

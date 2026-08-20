@@ -5,6 +5,7 @@ import { MapPin, CalendarClock, Paperclip, Package, ArrowLeft, ScrollText } from
 import api from "../lib/api.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useCreateLetter, useUpdateLetter, useLetterForEdit } from "../hooks/useLetters.js";
+import { useCrew } from "../hooks/useUser.js";
 import { useDraft, useUnloadGuard } from "../hooks/useDraft.js";
 import { formatDate } from "../lib/dates.js";
 import RichTextEditor from "../components/letter/RichTextEditor.jsx";
@@ -50,6 +51,7 @@ export default function WriteLetter() {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const { user, partner } = useAuth();
+  const { data: crewData } = useCrew();
   const create = useCreateLetter();
   const update = useUpdateLetter();
 
@@ -247,7 +249,7 @@ export default function WriteLetter() {
               onNameChange={(recipientName) => set({ recipientName })}
               addToCrew={form.addToCrew}
               onAddToCrewChange={(addToCrew) => set({ addToCrew })}
-              crewMembers={user?.crewMembers || []}
+              crewMembers={crewData || user?.crewMembers || []}
               partner={partner}
               locked={isEdit}
             />

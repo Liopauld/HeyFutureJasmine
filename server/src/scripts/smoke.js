@@ -349,6 +349,31 @@ async function main() {
 
     const luffyDocAfter = await User.findOne({ email: "luffy@sunny.sea" });
     check("user profile automatically bumps to Rookie Pirate (฿1,000,000)", luffyDocAfter.pirateTitle === "Rookie Pirate" && luffyDocAfter.bounty === 1_000_000);
+
+    // Saved Crew Management & Address Book E2E Tests (HFJ-009)
+    const addCrewRes = await req("POST", "/users/me/crew", {
+      token: paul.accessToken,
+      body: { name: "Roronoa Zoro", email: "zoro@sunny.sea" }
+    });
+    check("add crew member returns 201 with updated list", addCrewRes.status === 201 && addCrewRes.data?.crewMembers?.some((c) => c.email === "zoro@sunny.sea"));
+
+    // Prevent duplicate emails
+    const dupCrewRes = await req("POST", "/users/me/crew", {
+      token: paul.accessToken,
+      body: { name: "Zoro Duplicate", email: "zoro@sunny.sea" }
+    });
+    check("duplicate crew email is rejected (400)", dupCrewRes.status === 400);
+
+    // Get crew list
+    const getCrewRes = await req("GET", "/users/me/crew", { token: paul.accessToken });
+    const zoroMember = getCrewRes.data?.crewMembers?.find((c) => c.email === "zoro@sunny.sea");
+    check("get crew returns saved members", getCrewRes.status === 200 && Boolean(zoroMember));
+
+    // Remove crew member
+    if (zoroMember) {
+      const delCrewRes = await req("DELETE", `/users/me/crew/${zoroMember._id}`, { token: paul.accessToken });
+      check("delete crew member returns 204", delCrewRes.status === 204);
+    }
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

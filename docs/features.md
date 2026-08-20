@@ -37,4 +37,9 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 ### HFJ-008: Grand Line Partner Pairing & Pairing Code Exchange (Sprint 3)
 - **Pairing System:** Built 8-character uppercase pairing code generation and bidirectional account linking with self-pairing and duplicate consumption guards.
 - **Client PartnerPairCard:** Added dedicated `PartnerPairCard.jsx` and segmented `CodeInput.jsx` on `/profile` with copy-to-clipboard, live pairing badges, partner stats, and unpairing confirmation.
-- **E2E Smoke Tests:** Expanded `smoke.js` assertions testing code generation, self-pairing rejection, bidirectional linkage in MongoDB, and consumed code rejection.
+### HFJ-009: Saved Crew Management & Address Book (Sprint 3)
+- **Crew Contacts API:** Added `POST /api/users/me/crew` and `DELETE /api/users/me/crew/:id` with duplicate email validation.
+- **Profile CrewManager:** Built `CrewManager.jsx` allowing users to save and delete recurring contacts directly from settings.
+- **Reactive Recipient Picker:** Wired `useCrew` hook into `RecipientPicker.jsx` for 1-click quick-picking saved contacts during letter composition.
+- **E2E Smoke Tests:** Added CRUD assertions and duplicate prevention checks in `smoke.js`.
+

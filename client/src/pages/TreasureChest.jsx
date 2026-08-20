@@ -11,6 +11,7 @@ import LoadingCompass from "../components/common/LoadingCompass.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
 import { timeAgo, formatDate } from "../lib/dates.js";
 import { fxFor } from "../lib/chestThemes.js";
+import { playChestOpenSound } from "../lib/soundEffects.js";
 
 const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -83,6 +84,7 @@ export default function TreasureChest() {
   const fx = fxFor(letter.capsuleTheme);
 
   const openChest = () => {
+    playChestOpenSound();
     if (reducedMotion()) return setPhase("open");
     setPhase("opening");
     setTimeout(() => setPhase("open"), 1500);

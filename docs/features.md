@@ -30,4 +30,8 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 ### HFJ-006: Offline Caching & Add to Home Screen Support (Sprint 2)
 - **Service Worker Caching:** Implemented `sw.js` with static asset pre-caching, cache-first strategies for fonts and media, and network-first navigation with offline fallback.
 - **Progressive Web App Manifest:** Configured `site.webmanifest` with standalone display mode, theme colors (`#150C22`), and SVG/PNG icon sets for iOS and Android home screen installation.
-- **Offline Mode Indicator:** Built `OfflineBanner.jsx` dynamically alerting the user when network connectivity drops while allowing offline viewing of cached pages.
+### HFJ-007: Atmospheric Ocean Sounds & Reveal Audio (Sprint 2)
+- **Procedural Web Audio Engine:** Implemented zero-dependency procedural audio synthesis in `soundEffects.js` generating ocean surf wash and creaking golden treasure chime on chest opening.
+- **Audio Controls:** Built persistent `AmbientAudio.jsx` toggle in `Navbar.jsx` supporting mute preferences in `localStorage` with mobile Safari autoplay safety.
+- **Treasure Ceremony Hook:** Integrated reveal audio trigger into `TreasureChest.jsx` when opening unboxed time capsules.
+

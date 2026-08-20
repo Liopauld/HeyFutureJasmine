@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Anchor, PenLine, ScrollText, LogOut, UserRound, Sparkles } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth.js";
+import AmbientAudio from "../effects/AmbientAudio.jsx";
 
 const links = [
   { to: "/noticeboard", label: "Noticeboard", icon: Sparkles },
@@ -58,6 +59,7 @@ export default function Navbar() {
                   {user?.pirateTitle || "Landlubber"}
                 </span>
               </Link>
+              <AmbientAudio />
               <button
                 type="button"
                 onClick={handleLogout}
@@ -69,6 +71,7 @@ export default function Navbar() {
             </div>
           ) : status === "anonymous" ? (
             <div className="flex items-center gap-3 text-sm">
+              <AmbientAudio />
               <Link
                 to="/login"
                 className="rounded-full border border-gold px-4 py-1.5 text-gold transition hover:bg-gold hover:text-ocean"

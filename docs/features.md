@@ -77,6 +77,11 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Request-Triggered Sweeper:** Built `sweepOnRequest.js` middleware ensuring overdue letters deliver even on free-tier sleep cycles.
 - **Graceful Redis Degradation:** Configured resilient Redis client with bounded reconnect attempts falling back seamlessly to MongoDB sweeps.
 - **E2E Smoke Tests:** Verified failover sweep idempotency and overdue delivery execution without external Redis dependencies.
+### HFJ-019: GitHub Actions Automated Smoke Testing & Deploy Verification (Sprint 6)
+- **Continuous Integration Pipeline:** Configured `.github/workflows/ci.yml` running Node 20 matrix, server in-memory smoke tests, and client production build.
+- **Root NPM Workspaces:** Created root `package.json` with unified `npm run smoke` and `npm run build` commands.
+- **CI Health Badge:** Added live GitHub Actions CI status badge in `README.md`.
+
 
 
 

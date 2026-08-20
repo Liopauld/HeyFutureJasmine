@@ -13,7 +13,7 @@ const LetterSchema = new mongoose.Schema(
     //   us      → both of you, opened together
     letterType: {
       type: String,
-      enum: ["self", "partner", "us"],
+      enum: ["self", "partner", "us", "other"],
       default: "self"
     },
     // Kept in sync with letterType for backwards compatibility.
@@ -78,25 +78,25 @@ const LetterSchema = new mongoose.Schema(
       enum: ["sealed", "sailing", "delivered", "failed"],
       default: "sealed"
     },
-    visibility: {
-      type: String,
-      enum: ["private", "public_anonymous", "public_named"],
-      default: "private"
-    },
     unlockToken: {
       type: String,
       unique: true,
       sparse: true
     },
     jobId: String,
-    likes: {
-      type: Number,
-      default: 0
-    },
     capsuleTheme: {
       type: String,
       enum: ["default", "gold", "scroll", "davy_jones", "alabasta", "skypiea"],
       default: "default"
+    },
+    visibility: {
+      type: String,
+      enum: ["private", "public_anonymous", "public_named"],
+      default: "private"
+    },
+    likes: {
+      type: Number,
+      default: 0
     }
   },
   { timestamps: true }
@@ -106,5 +106,6 @@ const LetterSchema = new mongoose.Schema(
 LetterSchema.index({ deliveryDate: 1, status: 1 });
 LetterSchema.index({ sender: 1 });
 LetterSchema.index({ recipientEmail: 1 });
+LetterSchema.index({ visibility: 1, status: 1, deliveredAt: -1 });
 
 export const Letter = mongoose.model("Letter", LetterSchema);

@@ -64,9 +64,23 @@ CORS + the cross-site auth cookie. After the first deploy:
 ### Notes & gotchas
 
 - **Free plan cold starts:** the API sleeps after ~15 min idle and takes
-  ~30–50s to wake. The cron delivery sweep only runs while the service is
-  awake — fine for a low-traffic private app, but a paid instance (or an
-  external uptime pinger) guarantees on-time delivery for long-dated letters.
+  ~30–50s to wake, which stops the in-process cron sweep. Two things cover this:
+  1. **Sweep on request** (`server/src/middleware/sweepOnRequest.js`) — every
+     request, including the health check, runs an overdue-letter sweep at most
+     once per 5 minutes (`SWEEP_MIN_INTERVAL_MS`). A letter can arrive late, but
+     it can never be *missed*: the first visit after any downtime delivers it.
+  2. **Keep-alive ping** (`.github/workflows/keepalive.yml`) — a scheduled
+     workflow curling `/api/health` every 10 minutes, which also acts as a
+     delivery tick. Set the repo variable `API_HEALTH_URL` (Settings → Secrets
+     and variables → Actions → Variables) to
+     `https://heyfuturejasmine-api.onrender.com/api/health` to enable it.
+
+  Caveats worth knowing: GitHub delays scheduled workflows under load and
+  disables them after 60 days of repo inactivity, so treat the ping as
+  best-effort — layer 1 is what makes delivery correct. A free external monitor
+  (cron-job.org, UptimeRobot) is a firmer guarantee. Also, keeping one free web
+  service warm around the clock burns ~730 of Render's 750 free instance-hours
+  per month; the static site doesn't consume hours, so this fits, but only just.
 - **`NODE_ENV=production`** disables the `/api/dev` force-deliver routes and
   switches the refresh-token cookie to `SameSite=None; Secure` so it works
   across the two subdomains.

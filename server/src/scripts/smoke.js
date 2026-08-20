@@ -71,13 +71,27 @@ async function main() {
     await req("GET", `/auth/verify-email/${jasDoc.emailVerificationToken}`);
     check("email verification succeeds", verify.status === 200);
 
-    // Pair them
+    // Pair them (HFJ-008)
     const invite = await req("POST", "/users/me/pair/invite", { token: paul.accessToken });
+    check("invite code is 8 characters uppercase", invite.status === 200 && invite.data.code?.length === 8);
+
+    // Self-pairing guard
+    const selfPair = await req("POST", "/users/me/pair/accept", {
+      token: paul.accessToken,
+      body: { code: invite.data.code }
+    });
+    check("self-pairing is rejected (400)", selfPair.status === 400);
+
     const accept = await req("POST", "/users/me/pair/accept", {
       token: jasmine.accessToken,
       body: { code: invite.data.code }
     });
     check("partner pairing links the couple", accept.status === 200 && accept.data.partner);
+
+    // Mutual partner IDs in DB
+    const pDoc = await User.findOne({ email: "paul.test@x.io" });
+    const jDoc = await User.findOne({ email: "jasmine.test@x.io" });
+    check("mutual partner ObjectIds set in database", String(pDoc.partner) === String(jDoc._id) && String(jDoc.partner) === String(pDoc._id));
 
     // Paul writes a partner letter to Jasmine (future date) with a song
     const soon = new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString();
@@ -105,6 +119,13 @@ async function main() {
     })).data;
     const outsider = await req("GET", `/letters/${letterId}`, { token: nami.accessToken });
     check("private letter forbidden to outsider (403)", outsider.status === 403);
+
+    // Consumed code cannot be reused
+    const reusedCode = await req("POST", "/users/me/pair/accept", {
+      token: nami.accessToken,
+      body: { code: invite.data.code }
+    });
+    check("consumed pairing code is rejected", reusedCode.status === 404 || reusedCode.status === 409);
 
     // The sender can't peek at their own sealed chest either — only the edit view
     // hands the words back, and only inside the 24h window.

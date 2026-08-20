@@ -1,16 +1,12 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Copy, Check, Heart, Unlink } from "lucide-react";
+import { Camera } from "lucide-react";
 import api from "../lib/api.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useAuthStore } from "../store/authStore.js";
-import {
-  useUpdateProfile,
-  useCreatePairInvite,
-  useAcceptPairInvite,
-  useUnpair
-} from "../hooks/useUser.js";
+import { useUpdateProfile } from "../hooks/useUser.js";
 import Field from "../components/ui/Field.jsx";
+import PartnerPairCard from "../components/auth/PartnerPairCard.jsx";
 import { formatDate } from "../lib/dates.js";
 
 const toDateInput = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : "");
@@ -220,88 +216,7 @@ export default function Profile() {
       </form>
 
       {/* Crew of two (pairing) */}
-      <div className="space-y-4 rounded-3xl border border-grand-line bg-deep-sea/50 p-5">
-        <h3 className="flex items-center gap-2 font-display text-xl text-gold">
-          <Heart className="h-5 w-5" /> Your crew of two
-        </h3>
-
-        {partner ? (
-          <div className="flex items-center justify-between rounded-2xl border border-grand-line bg-ocean/50 p-4">
-            <div className="flex items-center gap-3">
-              {partner.avatar?.url ? (
-                <img src={partner.avatar.url} alt="" className="h-10 w-10 rounded-full object-cover" />
-              ) : (
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-grand-line font-display text-gold">
-                  {(partner.displayName || partner.username || "?")[0].toUpperCase()}
-                </span>
-              )}
-              <div>
-                <p className="text-text-primary">{partner.displayName || partner.username}</p>
-                <p className="text-xs text-text-muted">Paired</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleUnpair}
-              className="flex items-center gap-1.5 rounded-full border border-grand-line px-3 py-1.5 text-sm text-text-muted transition hover:border-straw-red hover:text-straw-red"
-            >
-              <Unlink className="h-4 w-4" /> Unpair
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-grand-line bg-ocean/50 p-4">
-              <p className="text-sm text-text-secondary">Invite your partner</p>
-              {inviteCode ? (
-                <div className="mt-3">
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 rounded-lg bg-deep-sea px-3 py-2 text-center font-mono text-lg tracking-widest text-gold">
-                      {inviteCode}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={copyCode}
-                      className="rounded-lg border border-grand-line p-2 text-text-secondary hover:text-gold"
-                      aria-label="Copy code"
-                    >
-                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  <p className="mt-2 text-xs text-text-muted">
-                    Share this code. They enter it to pair.
-                  </p>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={generateInvite}
-                  disabled={createInvite.isPending}
-                  className="mt-3 w-full rounded-full border border-gold px-4 py-2 text-sm text-gold transition hover:bg-gold hover:text-ocean disabled:opacity-60"
-                >
-                  {createInvite.isPending ? "…" : "Generate invite code"}
-                </button>
-              )}
-            </div>
-
-            <form onSubmit={acceptCode} className="rounded-2xl border border-grand-line bg-ocean/50 p-4">
-              <p className="text-sm text-text-secondary">Have a code?</p>
-              <input
-                value={enteredCode}
-                onChange={(e) => setEnteredCode(e.target.value.toUpperCase())}
-                placeholder="ENTER CODE"
-                className="mt-3 w-full rounded-lg border border-grand-line bg-deep-sea px-3 py-2 text-center font-mono tracking-widest text-gold placeholder:text-text-muted focus:border-gold focus:outline-none"
-              />
-              <button
-                type="submit"
-                disabled={acceptInvite.isPending || !enteredCode}
-                className="mt-3 w-full rounded-full bg-straw-red px-4 py-2 text-sm font-medium text-white transition hover:brightness-110 disabled:opacity-60"
-              >
-                {acceptInvite.isPending ? "Pairing…" : "Pair up"}
-              </button>
-            </form>
-          </div>
-        )}
-      </div>
+      <PartnerPairCard user={user} partner={partner} />
     </section>
   );
 }

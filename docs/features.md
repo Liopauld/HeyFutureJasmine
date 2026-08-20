@@ -34,4 +34,7 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Procedural Web Audio Engine:** Implemented zero-dependency procedural audio synthesis in `soundEffects.js` generating ocean surf wash and creaking golden treasure chime on chest opening.
 - **Audio Controls:** Built persistent `AmbientAudio.jsx` toggle in `Navbar.jsx` supporting mute preferences in `localStorage` with mobile Safari autoplay safety.
 - **Treasure Ceremony Hook:** Integrated reveal audio trigger into `TreasureChest.jsx` when opening unboxed time capsules.
-
+### HFJ-008: Grand Line Partner Pairing & Pairing Code Exchange (Sprint 3)
+- **Pairing System:** Built 8-character uppercase pairing code generation and bidirectional account linking with self-pairing and duplicate consumption guards.
+- **Client PartnerPairCard:** Added dedicated `PartnerPairCard.jsx` and segmented `CodeInput.jsx` on `/profile` with copy-to-clipboard, live pairing badges, partner stats, and unpairing confirmation.
+- **E2E Smoke Tests:** Expanded `smoke.js` assertions testing code generation, self-pairing rejection, bidirectional linkage in MongoDB, and consumed code rejection.

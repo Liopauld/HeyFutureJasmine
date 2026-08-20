@@ -22,6 +22,38 @@ router.post("/deliver/:id", requireAuth, async (req, res, next) => {
   }
 });
 
+// SuperPeek: Inspect any letter unredacted without modifying deliveryDate or status (Dev Only).
+router.get("/peek/:id", requireAuth, async (req, res, next) => {
+  try {
+    const letter = await Letter.findById(req.params.id).populate("sender attachments");
+    if (!letter) return res.status(404).json({ message: "Letter not found" });
+
+    return res.json({
+      letter: {
+        _id: letter._id,
+        subject: letter.subject,
+        body: letter.body,
+        status: letter.status,
+        sealed: letter.status !== "delivered",
+        deliveryDate: letter.deliveryDate,
+        sentAt: letter.sentAt,
+        deliveredAt: letter.deliveredAt,
+        recipientEmail: letter.recipientEmail,
+        recipientName: letter.recipientName,
+        letterType: letter.letterType,
+        capsuleTheme: letter.capsuleTheme,
+        visibility: letter.visibility,
+        attachments: letter.attachments,
+        song: letter.song,
+        unlockToken: letter.unlockToken,
+        superPeek: true
+      }
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // Manually trigger the reliability sweep.
 router.post("/sweep", requireAuth, async (_req, res, next) => {
   try {

@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema(
     },
     pirateTitle: {
       type: String,
-      default: "Rookie Pirate"
+      default: "Landlubber"
     },
     bounty: {
       type: Number,

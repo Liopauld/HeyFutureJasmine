@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, useParams, Link } from "react-router-dom";
 import { toast } from "sonner";
-import { MapPin, CalendarClock, Paperclip, Package, ArrowLeft, ScrollText } from "lucide-react";
+import { MapPin, CalendarClock, Paperclip, Package, ArrowLeft, ScrollText, History } from "lucide-react";
 import api from "../lib/api.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useCreateLetter, useUpdateLetter, useLetterForEdit } from "../hooks/useLetters.js";
@@ -222,6 +222,22 @@ export default function WriteLetter() {
               Discard
             </button>
           </div>
+        </div>
+      ) : null}
+
+      {replyTo ? (
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-sand text-xs">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-amber-400" />
+            <span>Replying across time to a previous time capsule.</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setReplyTo(null)}
+            className="text-sand-dim hover:text-straw-red underline cursor-pointer"
+          >
+            Unlink
+          </button>
         </div>
       ) : null}
 

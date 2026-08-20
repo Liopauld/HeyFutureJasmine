@@ -60,7 +60,18 @@ function buildLetterPreview(letter, { redactBody = false } = {}) {
     sealed: letter.status !== "delivered",
     attachments: redactBody ? [] : letter.attachments,
     song: redactBody ? undefined : letter.song,
-    replyTo: letter.replyTo?._id || letter.replyTo || null,
+    replyTo: letter.replyTo
+      ? typeof letter.replyTo === "object" && letter.replyTo.subject
+        ? {
+            _id: letter.replyTo._id,
+            subject: letter.replyTo.subject,
+            letterType: letter.replyTo.letterType,
+            deliveredAt: letter.replyTo.deliveredAt,
+            deliveryDate: letter.replyTo.deliveryDate,
+            senderInfo: senderView(letter.replyTo.sender)
+          }
+        : letter.replyTo
+      : null,
     deliveryDate: letter.deliveryDate,
     sentAt: letter.sentAt,
     deliveredAt: letter.deliveredAt,
@@ -238,7 +249,13 @@ export async function getLetters(req, res, next) {
 
 export async function getLetterById(req, res, next) {
   try {
-    const letter = await Letter.findById(req.params.id).populate("sender attachments");
+    const letter = await Letter.findById(req.params.id)
+      .populate("sender attachments")
+      .populate({
+        path: "replyTo",
+        select: "subject letterType sentAt createdAt deliveredAt deliveryDate sender",
+        populate: { path: "sender", select: "username displayName avatar" }
+      });
     if (!letter) return res.status(404).json({ message: "Letter not found" });
 
     const { isSender, isRecipient } = relationTo(letter, req.user);

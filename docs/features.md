@@ -62,7 +62,12 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 ### HFJ-014: Cinematic 3D Treasure Chest Unboxing & Confetti Ceremony (Sprint 5)
 - **3D Chest Animation:** Created `TreasureChest3D.jsx` featuring dynamic perspective transforms, rotating key-unlock effects, and theme-matching particle bursts.
 - **Canvas Confetti Launcher:** Built `GoldConfetti.jsx` launching a celebratory multi-colored golden confetti shower when unboxing delivered letters.
-- **Ceremony State Machine & Replay:** Implemented seamless ceremony progression (`closed` -> `unlocking` -> `opened` -> `open`) with a 1-click 'Replay Ceremony' option in `TreasureChest.jsx`.
+### HFJ-015: 'Reply to the Past' Letter Chain & Response Threading (Sprint 5)
+- **Letter Threading API:** Enabled `replyTo` relationship tracking and populated thread previews with parent letter subject and sender details.
+- **Composer Reply Banner:** Added `location.state.replyTo` handling with an informative link banner and unlink capability in `WriteLetter.jsx`.
+- **Delivered Thread Viewer:** Created `LetterThreadCard.jsx` displaying the linked past time capsule with 1-click navigation in `TreasureChest.jsx`.
+- **E2E Smoke Tests:** Added automated assertions in `smoke.js` verifying reply letter creation and thread preview population.
+
 
 
 

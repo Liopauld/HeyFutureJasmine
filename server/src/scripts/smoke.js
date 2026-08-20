@@ -460,6 +460,24 @@ async function main() {
 
     const songLetterRes = await req("GET", `/letters/${songLetter._id}`, { token: paul.accessToken });
     check("delivered letter preserves song embed metadata", songLetterRes.data?.letter?.song?.title === "We Are!" && songLetterRes.data?.letter?.song?.provider === "spotify");
+
+    // Reply Threading E2E Tests (HFJ-015)
+    const replyLetter = await Letter.create({
+      sender: paulDoc._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: "paul.test@x.io",
+      recipientName: "Paul",
+      subject: "Re: Grand Line Anthem",
+      body: "<p>Remembering that anthem from 10 years ago.</p>",
+      deliveryDate: new Date(Date.now() + 1000),
+      replyTo: songLetter._id,
+      status: "delivered",
+      deliveredAt: new Date()
+    });
+
+    const replyLetterRes = await req("GET", `/letters/${replyLetter._id}`, { token: paul.accessToken });
+    check("delivered reply letter populates parent letter thread preview", replyLetterRes.data?.letter?.replyTo?.subject === "Grand Line Anthem");
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

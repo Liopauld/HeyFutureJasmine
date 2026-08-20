@@ -7,6 +7,7 @@ import TreasureChest3D from "../components/letter/TreasureChest3D.jsx";
 import SongEmbed from "../components/letter/SongEmbed.jsx";
 import GramophonePlayer from "../components/letter/GramophonePlayer.jsx";
 import PhotoLightbox from "../components/letter/PhotoLightbox.jsx";
+import LetterThreadCard from "../components/letter/LetterThreadCard.jsx";
 import GoldDust from "../components/effects/GoldDust.jsx";
 import GoldConfetti from "../components/effects/GoldConfetti.jsx";
 import SparkBurst from "../components/effects/SparkBurst.jsx";
@@ -147,6 +148,8 @@ export default function TreasureChest() {
                 <h1 className="mt-1 font-display text-3xl text-ink">{letter.subject}</h1>
                 <p className="font-serif italic text-ink/60">{fromLabel}</p>
               </div>
+
+              {letter.replyTo ? <LetterThreadCard replyTo={letter.replyTo} /> : null}
 
               <div className="letter-content" dangerouslySetInnerHTML={{ __html: letter.body }} />
 

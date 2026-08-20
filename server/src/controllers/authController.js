@@ -178,6 +178,7 @@ export async function resetPassword(req, res, next) {
     }
 
     user.passwordHash = await hashPassword(password);
+    user.refreshToken = undefined;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();

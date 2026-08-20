@@ -69,7 +69,11 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 ### HFJ-016: Interactive Canvas Wanted Poster PNG Card Exporter (Sprint 5)
 - **Canvas Poster Generator:** Created `canvasPosterExport.js` rendering a 1200x1600 high-res authentic One Piece wanted poster with user avatar, title, and formatted bounty.
 - **Direct Download & Web Share:** Added 1-click 'Download Poster (PNG)' button and mobile Web Share API integration in `Profile.jsx`.
-- **E2E Smoke Tests:** Retained full green status across 59/59 in-memory assertions.
+### HFJ-017: Email Verification, Resend Transactional Templates & Password Reset (Sprint 6)
+- **Password Reset Lifecycle:** Built time-limited cryptographically secure password reset tokens (1-hour expiry) with refresh token invalidation upon password updates.
+- **Parchment Transactional Emails:** Designed responsive parchment HTML email templates with Pirate wax seal branding for verification and password reset flows.
+- **E2E Smoke Tests:** Added automated assertions in `smoke.js` verifying the complete forgot-password, reset-password, and new-login lifecycle.
+
 
 
 

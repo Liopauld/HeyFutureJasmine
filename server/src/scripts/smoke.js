@@ -478,6 +478,33 @@ async function main() {
 
     const replyLetterRes = await req("GET", `/letters/${replyLetter._id}`, { token: paul.accessToken });
     check("delivered reply letter populates parent letter thread preview", replyLetterRes.data?.letter?.replyTo?.subject === "Grand Line Anthem");
+
+    // Email Verification & Password Reset Flow E2E Tests (HFJ-017)
+    const forgotRes = await req("POST", "/auth/forgot-password", {
+      body: { email: "luffy@sunny.sea" }
+    });
+    check("forgot password returns success message", forgotRes.status === 200);
+
+    const luffyWithReset = await User.findOne({ email: "luffy@sunny.sea" });
+    check("user record generates passwordResetToken with 1h expiry", Boolean(luffyWithReset.passwordResetToken) && Boolean(luffyWithReset.passwordResetExpires));
+
+    // Tampered token rejection
+    const invalidResetRes = await req("POST", "/auth/reset-password/tampered-token-xyz", {
+      body: { password: "newpiratekingpassword" }
+    });
+    check("invalid password reset token is rejected (404)", invalidResetRes.status === 404);
+
+    // Valid reset execution
+    const validResetRes = await req("POST", `/auth/reset-password/${luffyWithReset.passwordResetToken}`, {
+      body: { password: "newpiratekingpassword" }
+    });
+    check("valid password reset succeeds (200)", validResetRes.status === 200);
+
+    // Login with new credentials
+    const newLoginRes = await req("POST", "/auth/login", {
+      body: { email: "luffy@sunny.sea", password: "newpiratekingpassword" }
+    });
+    check("login succeeds with updated password", newLoginRes.status === 200 && Boolean(newLoginRes.data?.accessToken));
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

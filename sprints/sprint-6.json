@@ -1,0 +1,83 @@
+{
+  "sprint": 6,
+  "title": "Sprint 6: Production Hardening, Email Verification & CI/CD",
+  "goal": "Harden production security with Resend email verification and password reset flows, bulletproof delivery sweepers across Redis/MongoDB failovers, and configure GitHub Actions CI for automated E2E testing.",
+  "status": "backlog",
+  "startDate": "2026-11-03",
+  "targetDate": "2026-11-17",
+  "issues": [
+    {
+      "id": "HFJ-017",
+      "title": "[Auth & Security] Email Verification, Resend Transactional Templates & Password Reset",
+      "labels": ["auth", "security", "backend", "frontend", "sprint-6", "priority:high"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a user, I want secure email verification upon registration and a time-limited password reset flow with pirate-themed HTML emails, so my treasure capsules remain secure.",
+      "technical_scope": {
+        "models": ["server/src/models/User.js (emailVerificationToken, passwordResetToken, passwordResetExpires)"],
+        "controllers": ["server/src/controllers/authController.js (verifyEmail, forgotPassword, resetPassword)"],
+        "services": ["server/src/services/emailService.js (Resend templates for email verification and password reset)"],
+        "client_pages": ["client/src/pages/Auth/VerifyEmail.jsx", "client/src/pages/Auth/ForgotPassword.jsx", "client/src/pages/Auth/ResetPassword.jsx"]
+      },
+      "acceptance_criteria": [
+        "Registering sends a branded email verification link valid for 24 hours.",
+        "Password reset sends a cryptographically random token valid for 1 hour.",
+        "Reset password endpoint invalidates existing refresh tokens upon successful password change.",
+        "Resend email templates use responsive HTML with Pirate wax seal branding and anti-phishing footer."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] Register new user -> query GET /api/auth/verify-email/:token -> verify `emailVerified: true`.",
+        "2. [API Test] POST /api/auth/forgot-password with email -> receive token -> POST /api/auth/reset-password/:token with new password -> login with new password.",
+        "3. [Security Test] Attempt reset with expired or tampered token -> verify HTTP 400 'Reset token is invalid or has expired'.",
+        "4. [Automated] Add complete email verification & password reset lifecycle test to server/src/scripts/smoke.js."
+      ]
+    },
+    {
+      "id": "HFJ-018",
+      "title": "[Reliability] Redis BullMQ Fallback & Redundant MongoDB Cron Sweeper",
+      "labels": ["reliability", "backend", "sprint-6", "priority:high"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a platform operator, I want guaranteed letter delivery even if Redis goes down or scheduled jobs are delayed, so no letter is ever lost at sea.",
+      "technical_scope": {
+        "jobs": ["server/src/jobs/deliverySweep.js (node-cron job running every 5 minutes)", "server/src/jobs/letterWorker.js (BullMQ queue worker with retry policy)"],
+        "middleware": ["server/src/middleware/sweepOnRequest.js (throttled background sweep during active API requests)"],
+        "config": ["server/src/config/redis.js (graceful fallback mode when Redis connection fails)"]
+      },
+      "acceptance_criteria": [
+        "BullMQ job delays execute delivery on exact timestamp when Redis is available.",
+        "If Redis is unreachable, app logs a warning and falls back seamlessly to MongoDB Cron Sweeper without crashing.",
+        "Background sweep processes overdue letters in batches of 50 with atomic status transitions (`findOneAndUpdate` with status guard) to prevent duplicate emails.",
+        "Letters marked 'delivered' dispatch Resend notification and update `deliveredAt` timestamp."
+      ],
+      "end_to_end_test_plan": [
+        "1. [Failover Test] Disconnect Redis -> create letter with past deliveryDate -> trigger sweep -> verify letter status transitions to 'delivered' and email is dispatched.",
+        "2. [Concurrency Test] Trigger concurrent sweep executions on the same batch -> verify zero duplicate delivery emails are sent.",
+        "3. [Automated] Add Redis-less sweep fallback test case to server smoke test harness."
+      ]
+    },
+    {
+      "id": "HFJ-019",
+      "title": "[DevOps & CI] GitHub Actions Automated Smoke Testing & Deploy Verification",
+      "labels": ["devops", "reliability", "sprint-6", "priority:medium"],
+      "priority": "medium",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a developer and maintainer, I want every pull request and commit to automatically run linting, client build checks, and server in-memory smoke tests via GitHub Actions CI.",
+      "technical_scope": {
+        "workflows": [".github/workflows/ci.yml (Node.js 20 matrix, npm run smoke, client build)"],
+        "scripts": ["package.json (root test and build scripts)"]
+      },
+      "acceptance_criteria": [
+        "GitHub Actions workflow triggers on push to `main`, `develop`, `rebuild` and all PRs.",
+        "CI executes `npm run smoke` on MongoDB memory server (no external databases required).",
+        "CI validates client build `npm run build` with zero Vite/TypeScript errors.",
+        "Status badges in README.md reflect the real-time build and test health."
+      ],
+      "end_to_end_test_plan": [
+        "1. [CI Test] Run workflow locally using `act` or push commit to test branch -> verify workflow succeeds.",
+        "2. [Negative Test] Introduce a deliberate assertion error in smoke test -> verify CI pipeline fails and blocks merge.",
+        "3. [Automated] Ensure all CI steps complete within < 90 seconds."
+      ]
+    }
+  ]
+}

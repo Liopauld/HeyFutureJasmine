@@ -1,0 +1,88 @@
+{
+  "sprint": 4,
+  "title": "Sprint 4: Voice Notes, Cloudinary Media & Song Embeds",
+  "goal": "Implement native web audio voice memo recording with waveform preview, multi-photo drag-and-drop uploads via Cloudinary, and song embed integrations for Spotify/YouTube.",
+  "status": "backlog",
+  "startDate": "2026-10-04",
+  "targetDate": "2026-10-18",
+  "issues": [
+    {
+      "id": "HFJ-011",
+      "title": "[Media] In-Browser Voice Memo Recording & Audio Waveform Visualizer",
+      "labels": ["media", "frontend", "backend", "sprint-4", "audio", "priority:high"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a letter writer, I want to record a personal voice note directly from my browser or mobile device, preview its audio waveform, and attach it to my sealed letter.",
+      "technical_scope": {
+        "client_hooks": ["client/src/hooks/useAudioRecorder.js (MediaRecorder API, audio/webm/wav blob handling)"],
+        "client_components": ["client/src/components/letter/VoiceRecorder.jsx (waveform canvas visualizer, record/stop/playback controls)"],
+        "server_routes": ["server/src/routes/uploads.js (support audio/webm, audio/mp3, audio/wav resourceType 'audio')"],
+        "server_services": ["server/src/services/cloudinaryService.js (stream upload for audio attachments)"]
+      },
+      "acceptance_criteria": [
+        "User can click 'Record Voice Note' to capture microphone audio with real-time waveform visualization.",
+        "User can play back, re-record, or delete the voice memo prior to sealing the letter.",
+        "Voice recording is uploaded to Cloudinary as an audio resource and linked to the letter's `attachments` array.",
+        "Delivered treasure chest view renders a vintage gramophone audio player with scrub bar and duration display."
+      ],
+      "end_to_end_test_plan": [
+        "1. [Media Test] Mock MediaRecorder stream in client -> record 5-second audio snippet -> verify Blob generation.",
+        "2. [API Test] Upload audio blob to POST /api/uploads -> verify Cloudinary returns secureUrl and resourceType 'audio'.",
+        "3. [UI Test] Seal letter with voice note -> force deliver letter -> open /treasure/:id -> verify gramophone audio player loads and plays audio.",
+        "4. [Security Test] Verify that sealed letter audio attachments cannot be accessed before delivery date.",
+        "5. [Automated] Add audio upload format and size validation assertions to server smoke tests."
+      ]
+    },
+    {
+      "id": "HFJ-012",
+      "title": "[Media] Drag-and-Drop Photo Upload Pipeline & Cloudinary Attachment Manager",
+      "labels": ["media", "frontend", "backend", "sprint-4", "priority:high"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a sender, I want to drag and drop multiple high-resolution photos into my letter, preview thumbnails with caption notes, and have them securely stored and optimized on Cloudinary.",
+      "technical_scope": {
+        "models": ["server/src/models/Attachment.js (uploader, letter ref, cloudinaryPublicId, secureUrl, fileSize, format)"],
+        "controllers": ["server/src/controllers/uploadController.js (uploadMedia, deleteAttachment)"],
+        "client_components": ["client/src/components/letter/PhotoUploader.jsx (React Dropzone, image compression, progress bar)", "client/src/components/letter/PhotoLightbox.jsx"]
+      },
+      "acceptance_criteria": [
+        "React Dropzone supports drag-and-drop of JPEG, PNG, WEBP, and HEIC up to 10MB per file.",
+        "Client compresses images before upload for snappy performance on mobile connections.",
+        "Uploads show smooth animated progress rings and thumbnail previews with removal buttons.",
+        "Delivered letters render an interactive photo grid with a full-screen Lightbox viewer."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] POST /api/uploads with multi-part image -> verify Cloudinary response with secureUrl and auto WebP optimization.",
+        "2. [API Test] DELETE /api/uploads/:id -> verify record removed from MongoDB and asset deleted from Cloudinary.",
+        "3. [UI Test] Drop 3 images into /write editor -> confirm progress bars and thumbnail previews render.",
+        "4. [UI Test] Open delivered letter -> click photo thumbnail -> verify full-screen Lightbox opens with next/previous navigation.",
+        "5. [Automated] Validate image upload middleware limits in smoke tests."
+      ]
+    },
+    {
+      "id": "HFJ-013",
+      "title": "[Media] Music & Song Embed Integrations (Spotify, Apple Music, YouTube)",
+      "labels": ["media", "frontend", "backend", "sprint-4", "audio", "priority:medium"],
+      "priority": "medium",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a sender, I want to attach a meaningful song (Spotify track URL, Apple Music, or YouTube link) so the recipient can listen to our soundtrack while reading the letter.",
+      "technical_scope": {
+        "models": ["server/src/models/Letter.js (song object: { provider, url, title, artist, embedUrl })"],
+        "schemas": ["shared/schemas/letterSchema.js (song url parser & provider validator)"],
+        "client_components": ["client/src/components/letter/SongPicker.jsx (URL paste & metadata parser)", "client/src/components/letter/MusicPlayerEmbed.jsx (iframe embed widget)"]
+      },
+      "acceptance_criteria": [
+        "User can paste a Spotify, YouTube, or Apple Music link when writing a letter.",
+        "System validates URL and extracts the canonical embed iframe URL.",
+        "Composer renders a mini music card preview showing song title and provider icon.",
+        "Delivered letter reveal page embeds the music player widget at the top of the parchment."
+      ],
+      "end_to_end_test_plan": [
+        "1. [Validation Test] Test songSchema with valid Spotify URL (`https://open.spotify.com/track/...`) and invalid URL -> verify schema validation.",
+        "2. [API Test] POST /api/letters with valid song metadata -> verify song object saved in MongoDB.",
+        "3. [UI Test] Seal letter with Spotify song -> force deliver -> open /treasure/:id -> verify Spotify embed iframe renders and loads track.",
+        "4. [Automated] Add song URL parsing unit test to shared test suite."
+      ]
+    }
+  ]
+}

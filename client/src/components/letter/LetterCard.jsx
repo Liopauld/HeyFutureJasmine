@@ -73,6 +73,11 @@ export default function LetterCard({ letter, userId, email, onDelete }) {
             <div className="min-w-0 flex-1">
               <p className="truncate font-display text-lg text-text-primary">{letter.subject}</p>
               <p className="text-xs text-text-muted">{direction}</p>
+              {(letter.letterType === "partner" || letter.letterType === "us") && (
+                <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[10px] font-bold">
+                  <span>💖</span> Crew of Two
+                </span>
+              )}
             </div>
           </div>
 

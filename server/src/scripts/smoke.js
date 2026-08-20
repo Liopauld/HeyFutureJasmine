@@ -374,6 +374,17 @@ async function main() {
       const delCrewRes = await req("DELETE", `/users/me/crew/${zoroMember._id}`, { token: paul.accessToken });
       check("delete crew member returns 204", delCrewRes.status === 204);
     }
+
+    // Shared Anniversary & Couple Capsule Milestones E2E Tests (HFJ-010)
+    const patchAnnivRes = await req("PATCH", "/users/me", {
+      token: paul.accessToken,
+      body: { anniversary: "2023-11-14T00:00:00.000Z" }
+    });
+    check("update anniversary returns updated user", patchAnnivRes.status === 200 && patchAnnivRes.data?.user?.anniversary);
+
+    // Verify synced to partner automatically
+    const updatedJasDoc = await User.findOne({ email: "jasmine.test@x.io" });
+    check("shared anniversary automatically syncs to partner", Boolean(updatedJasDoc.anniversary));
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

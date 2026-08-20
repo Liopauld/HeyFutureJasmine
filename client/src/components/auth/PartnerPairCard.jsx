@@ -8,7 +8,7 @@ import {
   useAcceptPairInvite,
   useUnpair
 } from "../../hooks/useUser.js";
-import { formatDate } from "../../lib/dates.js";
+import { formatDate, nextAnniversary, daysBetween } from "../../lib/dates.js";
 
 export function PartnerPairCard({ user, partner }) {
   const createInvite = useCreatePairInvite();
@@ -95,6 +95,28 @@ export function PartnerPairCard({ user, partner }) {
               <p className="text-[11px] text-sand-dim truncate">{partner.email}</p>
             </div>
           </div>
+
+          {/* Anniversary Countdown */}
+          {(() => {
+            const anniv = user?.anniversary || partner?.anniversary;
+            if (!anniv) return null;
+            const nextAnniv = nextAnniversary(anniv);
+            const daysToAnniv = nextAnniv ? daysBetween(Date.now(), nextAnniv) : null;
+            return (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-500/20 via-pink-500/10 to-transparent border border-rose-500/30 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Heart className="w-4 h-4 text-rose-400 fill-rose-400" />
+                  <div>
+                    <p className="text-xs font-bold text-rose-300 font-display">Next Shared Anniversary</p>
+                    <p className="text-[11px] text-sand-dim">{formatDate(nextAnniv)}</p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold font-mono">
+                  {daysToAnniv === 0 ? "Today! 🎉" : `in ${daysToAnniv} days`}
+                </span>
+              </div>
+            );
+          })()}
 
           <div className="flex items-center justify-between pt-2">
             <p className="text-xs text-sand-dim">

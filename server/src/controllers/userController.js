@@ -54,7 +54,12 @@ export async function updateMe(req, res, next) {
     }
     if (displayName !== undefined) user.displayName = displayName;
     if (pirateTitle !== undefined) user.pirateTitle = pirateTitle;
-    if (anniversary !== undefined) user.anniversary = anniversary ? new Date(anniversary) : undefined;
+    if (anniversary !== undefined) {
+      user.anniversary = anniversary ? new Date(anniversary) : undefined;
+      if (user.partner) {
+        await User.findByIdAndUpdate(user.partner, { $set: { anniversary: user.anniversary } });
+      }
+    }
 
     await user.save();
     return res.json({ user: publicUser(user) });

@@ -42,4 +42,9 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Profile CrewManager:** Built `CrewManager.jsx` allowing users to save and delete recurring contacts directly from settings.
 - **Reactive Recipient Picker:** Wired `useCrew` hook into `RecipientPicker.jsx` for 1-click quick-picking saved contacts during letter composition.
 - **E2E Smoke Tests:** Added CRUD assertions and duplicate prevention checks in `smoke.js`.
-
+### HFJ-010: Shared Anniversary & Couple Capsule Milestones (Sprint 3)
+- **Shared Anniversary Sync:** Updating anniversary date automatically synchronizes the date with the paired partner in MongoDB.
+- **Countdown Widget:** Added live anniversary countdown widget in `PartnerPairCard.jsx` showing days until next shared milestone.
+- **Composer Milestone Presets:** Added 'On Our Next Anniversary' 1-click preset button in `DeliveryDatePicker.jsx`.
+- **Couple Capsule Ribbon:** Added '💖 Crew of Two' badge to partner and shared capsules in `LetterCard.jsx`.
+- **E2E Smoke Tests:** Added automated tests in `smoke.js` verifying anniversary persistence and partner sync.

@@ -419,6 +419,24 @@ async function main() {
 
     const voiceLetterRes = await req("GET", `/letters/${voiceLetter._id}`, { token: paul.accessToken });
     check("delivered letter populates voice attachment", voiceLetterRes.data?.letter?.attachments?.some((a) => a.kind === "voice"));
+
+    // Photo Attachment Pipeline E2E Tests (HFJ-012)
+    const photoAttachment = await Attachment.create({
+      uploader: paulDoc._id,
+      cloudinaryPublicId: "hfj_photo_test_456",
+      url: "http://res.cloudinary.com/demo/image/upload/sunny-voyage.jpg",
+      secureUrl: "https://res.cloudinary.com/demo/image/upload/sunny-voyage.jpg",
+      resourceType: "image",
+      kind: "photo",
+      originalName: "sunny-voyage.jpg",
+      fileSize: 120000,
+      format: "jpg"
+    });
+    check("create photo attachment with kind 'photo' and resourceType 'image'", photoAttachment.kind === "photo" && photoAttachment.resourceType === "image");
+
+    // Attachment delete endpoint requires authentication and ownership
+    const delPhotoRes = await req("DELETE", `/uploads/${photoAttachment._id}`, { token: paul.accessToken });
+    check("delete attachment returns 204", delPhotoRes.status === 204);
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

@@ -51,5 +51,10 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Voice Memo Recording:** Built native in-browser voice memo recording using `MediaRecorder` API with live duration timer.
 - **Waveform Canvas Visualizer:** Implemented real-time audio waveform canvas visualizer in `VoiceRecorder.jsx` using Web Audio API `AnalyserNode`.
 - **Vintage Gramophone Player:** Created `GramophonePlayer.jsx` for delivered letters featuring spinning vinyl disc animation, scrub progress bar, and duration tracker.
-- **E2E Smoke Tests:** Added automated assertions in `smoke.js` testing voice attachment creation, kind/resourceType classification, and letter population.
+### HFJ-012: Drag-and-Drop Photo Upload Pipeline & Cloudinary Attachment Manager (Sprint 4)
+- **Photo Dropzone:** Enhanced `PhotoDropzone.jsx` with multi-image drop support, upload spinner, and thumbnail deletion.
+- **Interactive Photo Lightbox:** Created `PhotoLightbox.jsx` supporting arrow key navigation, keyboard Esc shortcuts, full-screen zoom, and direct download links.
+- **Chest Lightbox Integration:** Integrated click-to-open photo lightbox gallery in `TreasureChest.jsx`.
+- **E2E Smoke Tests:** Added automated assertions in `smoke.js` testing photo attachment classification and deletion endpoint.
+
 

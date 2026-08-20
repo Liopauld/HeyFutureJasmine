@@ -6,6 +6,7 @@ import { useLetter, useLetterByToken } from "../hooks/useLetters.js";
 import AnimatedChest from "../components/letter/AnimatedChest.jsx";
 import SongEmbed from "../components/letter/SongEmbed.jsx";
 import GramophonePlayer from "../components/letter/GramophonePlayer.jsx";
+import PhotoLightbox from "../components/letter/PhotoLightbox.jsx";
 import GoldDust from "../components/effects/GoldDust.jsx";
 import SparkBurst from "../components/effects/SparkBurst.jsx";
 import LoadingCompass from "../components/common/LoadingCompass.jsx";
@@ -22,6 +23,7 @@ export default function TreasureChest() {
   const { id, token } = useParams();
   const navigate = useNavigate();
   const [phase, setPhase] = useState("closed"); // closed → opening → open
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const byId = useLetter(id);
   const byToken = useLetterByToken(token);
@@ -156,16 +158,36 @@ export default function TreasureChest() {
               ) : null}
 
               {photos.length ? (
-                <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {photos.map((p) => (
-                    <a key={p._id} href={p.secureUrl} target="_blank" rel="noreferrer">
-                      <img
-                        src={p.secureUrl}
-                        alt={p.originalName || "a captured memory"}
-                        className="h-28 w-full rounded-lg object-cover shadow"
-                      />
-                    </a>
-                  ))}
+                <div className="mt-6">
+                  <p className="mb-2 text-xs font-display uppercase tracking-wider text-ink/70 font-bold">
+                    📸 Captured Memories ({photos.length})
+                  </p>
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    {photos.map((p, idx) => (
+                      <button
+                        key={p._id}
+                        type="button"
+                        onClick={() => setLightboxIndex(idx)}
+                        className="group relative h-28 sm:h-32 w-full overflow-hidden rounded-xl border border-amber-900/20 bg-ink/10 shadow hover:border-gold transition focus:outline-none"
+                      >
+                        <img
+                          src={p.secureUrl}
+                          alt={p.originalName || "a captured memory"}
+                          className="h-full w-full object-cover transition group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold font-display">
+                          <span>View Memory</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <PhotoLightbox
+                    photos={photos}
+                    currentIndex={lightboxIndex}
+                    onClose={() => setLightboxIndex(null)}
+                    onIndexChange={setLightboxIndex}
+                  />
                 </div>
               ) : null}
 

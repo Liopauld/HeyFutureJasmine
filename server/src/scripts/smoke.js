@@ -271,6 +271,28 @@ async function main() {
     // Invalid unlock token returns 404
     const invalidTokenRes = await req("GET", "/letters/unlock/non-existent-uuid-token");
     check("invalid unlock token returns 404", invalidTokenRes.status === 404);
+
+    // Dev SuperPeek & Dev Route E2E Tests (HFJ-003)
+    const futureCapsule = await Letter.create({
+      sender: paulDoc._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: "paul.test@x.io",
+      recipientName: "Paul",
+      subject: "Secret Pirate Map",
+      body: "<p>Hidden treasure is buried at coordinates 42, -71.</p>",
+      deliveryDate: new Date(Date.now() + 5 * 365 * 24 * 3600 * 1000), // 5 years in future
+      status: "sealed"
+    });
+
+    // SuperPeek returns full body in dev mode
+    const peekRes = await req("GET", `/dev/peek/${futureCapsule._id}`, { token: paul.accessToken });
+    check("superpeek returns unredacted body for sealed letter", peekRes.status === 200 && peekRes.data?.letter?.body?.includes("Hidden treasure"));
+    check("superpeek letter is marked as superPeek", peekRes.data?.letter?.superPeek === true);
+
+    // Verify letter in DB is still sealed
+    const futureDocAfter = await Letter.findById(futureCapsule._id);
+    check("superpeek does not modify sealed status in database", futureDocAfter.status === "sealed");
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

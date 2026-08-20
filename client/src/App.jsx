@@ -7,6 +7,7 @@ import PageWrapper from "./components/layout/PageWrapper.jsx";
 import RequireAuth from "./components/auth/RequireAuth.jsx";
 import LoadingCompass from "./components/common/LoadingCompass.jsx";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
+import DevInspectorBar from "./components/common/DevInspectorBar.jsx";
 import { useAuthBootstrap } from "./hooks/useAuth.js";
 
 // Code-split each route so heavy deps (TipTap, Framer Motion, DayPicker)
@@ -92,6 +93,7 @@ export default function App() {
           </Suspense>
         </ErrorBoundary>
       </PageWrapper>
+      <DevInspectorBar />
       <footer className="relative z-10 mt-auto pb-8 pt-12">
         <div className="mx-auto flex max-w-shell items-center gap-4 px-6 text-gold/30">
           <span className="h-px flex-1 bg-gradient-to-r from-transparent to-gold/25" />

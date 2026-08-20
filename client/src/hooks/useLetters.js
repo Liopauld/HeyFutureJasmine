@@ -96,3 +96,22 @@ export function useLikeLetter() {
     }
   });
 }
+
+/** Dev-only: SuperPeek inspects sealed letters unredacted without modifying deliveryDate. */
+export function useSuperPeek() {
+  return useMutation({
+    mutationFn: async (id) => (await api.get(`/dev/peek/${id}`)).data.letter
+  });
+}
+
+/** Dev-only: Trigger MongoDB reliability sweep. */
+export function useTriggerSweep() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await api.post("/dev/sweep")).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["letters"] });
+      queryClient.invalidateQueries({ queryKey: ["public-letters"] });
+    }
+  });
+}

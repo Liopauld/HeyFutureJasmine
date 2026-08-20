@@ -1,0 +1,90 @@
+{
+  "sprint": 3,
+  "title": "Sprint 3: Partner Pairing, Crew Logbook & Couple Capsules",
+  "goal": "Build the Grand Line partner pairing system with 8-character code exchange, anniversary milestone tracking, crew contact manager, and couple-mode time capsule reveals.",
+  "status": "backlog",
+  "startDate": "2026-09-19",
+  "targetDate": "2026-10-03",
+  "issues": [
+    {
+      "id": "HFJ-008",
+      "title": "[Feature] Grand Line Partner Pairing & Pairing Code Exchange",
+      "labels": ["feature", "frontend", "backend", "sprint-3", "priority:high", "pairing", "couples"],
+      "priority": "high",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a user, I want to generate an 8-character partner pairing code and share it with my significant other so our accounts are linked, allowing us to send direct partner letters and celebrate shared milestones.",
+      "technical_scope": {
+        "models": ["server/src/models/User.js (partner ObjectId ref, partnerInviteCode sparse index)"],
+        "controllers": ["server/src/controllers/userController.js (generatePartnerInvite, pairWithPartner, unpairPartner)"],
+        "routes": ["server/src/routes/users.js (POST /partner/invite, POST /partner/pair, POST /partner/unpair)"],
+        "client_pages": ["client/src/pages/Profile.jsx (PartnerPairCard component, invite code modal)"],
+        "client_components": ["client/src/components/auth/PartnerPairCard.jsx", "client/src/components/ui/CodeInput.jsx"]
+      },
+      "acceptance_criteria": [
+        "User can generate an 8-character alphanumeric partner invite code with copy-to-clipboard button.",
+        "Recipient user can enter invite code in their profile to link both accounts bidirectionally.",
+        "Once paired, both users' profiles display their partner's avatar, username, and paired badge.",
+        "Either user can safely unpair with a confirmation dialog.",
+        "Pairing prevents self-pairing or pairing with an already-linked account (returns clean error 400)."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] User A calls POST /api/users/partner/invite -> verify 8-character uppercase code returned.",
+        "2. [API Test] User B calls POST /api/users/partner/pair with User A's code -> verify both User A and User B show mutual partner ObjectIds.",
+        "3. [UI Test] Navigate to /profile as User A -> confirm partner status badge shows User B username and avatar.",
+        "4. [Security Test] User C attempts to pair with the same consumed code -> verify HTTP 400 'Code is invalid or already used'.",
+        "5. [Automated] Add partner pair/unpair roundtrip assertion to server/src/scripts/smoke.js."
+      ]
+    },
+    {
+      "id": "HFJ-009",
+      "title": "[Feature] Saved Crew Management & Address Book",
+      "labels": ["feature", "frontend", "backend", "sprint-3", "priority:medium", "couples"],
+      "priority": "medium",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a frequent letter writer, I want a saved 'Crew' address book in my settings so I can quickly select recurring recipients without re-typing their email addresses.",
+      "technical_scope": {
+        "models": ["server/src/models/User.js (crewMembers subdocument array)"],
+        "controllers": ["server/src/controllers/userController.js (getCrew, addCrewMember, removeCrewMember)"],
+        "routes": ["server/src/routes/users.js (GET /me/crew, POST /me/crew, DELETE /me/crew/:id)"],
+        "client_components": ["client/src/components/letter/RecipientPicker.jsx (dropdown crew quick-select)", "client/src/pages/Profile.jsx (CrewManager section)"]
+      },
+      "acceptance_criteria": [
+        "Users can view, add, and remove crew members (name + email) from their profile/settings.",
+        "RecipientPicker in /write page features a quick dropdown selector populated with saved crew members.",
+        "When writing a letter to an external email, an 'Add to my Crew' checkbox automatically adds the contact if checked.",
+        "Duplicate emails for the same user are prevented with a friendly validation warning."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] POST /api/users/me/crew with { name: 'Zoro', email: 'zoro@sunny.sea' } -> verify entry added to user document.",
+        "2. [UI Test] Open /write -> click RecipientPicker -> verify 'Zoro (zoro@sunny.sea)' appears in dropdown and auto-populates fields on click.",
+        "3. [UI Test] Delete crew member from /profile -> verify recipient picker removes item.",
+        "4. [Automated] Test crew CRUD in server smoke tests."
+      ]
+    },
+    {
+      "id": "HFJ-010",
+      "title": "[Feature] Shared Anniversary & Couple Capsule Milestones",
+      "labels": ["feature", "frontend", "backend", "sprint-3", "priority:medium", "couples"],
+      "priority": "medium",
+      "assignee": "AI Coding Agent",
+      "user_story": "As a paired couple, I want to set our anniversary date so the app can suggest special capsule milestones (e.g. Next Anniversary, +1 Year, +5 Years) and customize the capsule aesthetic.",
+      "technical_scope": {
+        "models": ["server/src/models/User.js (anniversary Date field)"],
+        "controllers": ["server/src/controllers/userController.js (updateProfile anniversary handling)"],
+        "client_components": ["client/src/components/letter/DatePicker.jsx (Milestone quick-select buttons)", "client/src/components/auth/PartnerPairCard.jsx (Anniversary countdown widget)"]
+      },
+      "acceptance_criteria": [
+        "Paired users can configure their shared anniversary date.",
+        "Profile displays an animated countdown badge: 'Next Anniversary in X Days'.",
+        "Compose letter date picker adds a 1-click preset: 'On Our Next Anniversary'.",
+        "Letters sent with type 'partner' or 'us' display a special couple chest ribbon in Captain's Log."
+      ],
+      "end_to_end_test_plan": [
+        "1. [API Test] PATCH /api/users/me with anniversary date -> verify persistence in MongoDB.",
+        "2. [UI Test] Navigate to /write -> click DatePicker -> click 'On Our Next Anniversary' preset -> verify calculated target date matches next anniversary.",
+        "3. [UI Test] Check Captain's Log for partner letters -> verify couple ribbon and badge display correctly.",
+        "4. [Automated] Add anniversary date calculation assertion to test suite."
+      ]
+    }
+  ]
+}

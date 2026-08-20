@@ -106,6 +106,56 @@ async function main() {
     const outsider = await req("GET", `/letters/${letterId}`, { token: nami.accessToken });
     check("private letter forbidden to outsider (403)", outsider.status === 403);
 
+    // The sender can't peek at their own sealed chest either — only the edit view
+    // hands the words back, and only inside the 24h window.
+    const senderPeek = await req("GET", `/letters/${letterId}`, { token: paul.accessToken });
+    check(
+      "sender sees own sealed letter redacted",
+      senderPeek.status === 200 &&
+        senderPeek.data?.letter?.sealed === true &&
+        senderPeek.data?.letter?.body === ""
+    );
+
+    const editView = await req("GET", `/letters/${letterId}/edit`, { token: paul.accessToken });
+    check(
+      "edit view returns the full body to the sender",
+      editView.status === 200 && editView.data?.letter?.body?.includes("future you")
+    );
+    const editOther = await req("GET", `/letters/${letterId}/edit`, { token: jasmine.accessToken });
+    check("edit view forbidden to the recipient (403)", editOther.status === 403);
+
+    // Editing inside the window
+    const edited = await req("PATCH", `/letters/${letterId}`, {
+      token: paul.accessToken,
+      body: { subject: "Edited treasure", body: "<p>Hello future you, again.</p>" }
+    });
+    check(
+      "sender can edit a chest outside the lock window",
+      edited.status === 200 && edited.data?.letter?.subject === "Edited treasure"
+    );
+
+    // Inside 24h the chest is locked for both editing and reading back
+    const lockedLetter = await Letter.create({
+      sender: paulDoc._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: "paul.test@x.io",
+      recipientName: "Paul",
+      subject: "Locked",
+      body: "<p>almost there</p>",
+      deliveryDate: new Date(Date.now() + 2 * 3600 * 1000),
+      status: "sealed"
+    });
+    const lockedEdit = await req("GET", `/letters/${lockedLetter._id}/edit`, {
+      token: paul.accessToken
+    });
+    check("edit view is 423 once inside the lock window", lockedEdit.status === 423);
+    const lockedPatch = await req("PATCH", `/letters/${lockedLetter._id}`, {
+      token: paul.accessToken,
+      body: { subject: "Too late" }
+    });
+    check("patch is 423 once inside the lock window", lockedPatch.status === 423);
+
     // Force-deliver (dev) then reveal
     const forced = await req("POST", `/dev/deliver/${letterId}`, { token: paul.accessToken });
     check("force-deliver succeeds", forced.status === 200 && forced.data.delivered === true);
@@ -134,6 +184,115 @@ async function main() {
     // Idempotency: a second sweep delivers nothing new
     const swept2 = await req("POST", "/dev/sweep", { token: jasmine.accessToken });
     check("sweep is idempotent (no double-send)", swept2.data.delivered === 0);
+
+    // Request-triggered sweep: the safety net for a host that sleeps the process
+    // and kills the cron. Any request — even the health check — catches up.
+    const { resetSweepThrottle } = await import("../middleware/sweepOnRequest.js");
+    const stranded = await Letter.create({
+      sender: paulDoc._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: "paul.test@x.io",
+      recipientName: "Paul",
+      subject: "Stranded",
+      body: "<p>the cron never ran</p>",
+      deliveryDate: new Date(Date.now() - 60_000),
+      status: "sealed"
+    });
+    resetSweepThrottle();
+    await req("GET", "/health");
+    // The middleware is fire-and-forget; give it a beat to finish.
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const strandedAfter = await Letter.findById(stranded._id);
+    check("a plain request delivers an overdue letter", strandedAfter.status === "delivered");
+
+    // Public Noticeboard & Trident Likes E2E Tests (HFJ-001)
+    const publicLetter = await Letter.create({
+      sender: paulDoc._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: "paul.test@x.io",
+      recipientName: "Paul",
+      subject: "A Tale from Jaya",
+      body: "<p>Legends say the golden bell rings in the clouds.</p>",
+      deliveryDate: new Date(Date.now() - 3600_000),
+      deliveredAt: new Date(),
+      status: "delivered",
+      visibility: "public_anonymous",
+      likes: 5
+    });
+
+    const publicFeed = await req("GET", "/letters/public");
+    const foundPublic = publicFeed.data?.letters?.find((l) => l._id === String(publicLetter._id));
+    check("public noticeboard returns delivered public letter", Boolean(foundPublic));
+    check("anonymous public letter hides sender identity", foundPublic?.senderInfo?.isAnonymous === true);
+    check("private letters are not returned in public noticeboard", !publicFeed.data?.letters?.some((l) => l._id === String(lockedLetter._id)));
+
+    // Trident Salute
+    const likeRes = await req("POST", `/letters/${publicLetter._id}/like`);
+    check("trident salute increments likes counter", likeRes.status === 200 && likeRes.data?.likes === 6);
+
+    // External Recipient & Guest Unlock E2E Tests (HFJ-002)
+    const guestDeliveryDate = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString();
+    const guestLetterRes = await req("POST", "/letters", {
+      token: paul.accessToken,
+      body: {
+        letterType: "other",
+        recipientEmail: "sanji.chef@baratie.sea",
+        recipientName: "Sanji",
+        addToCrew: true,
+        subject: "Recipes of the All Blue",
+        body: "<p>Feed anyone who is hungry on the sea.</p>",
+        deliveryDate: guestDeliveryDate
+      }
+    });
+
+    const guestLetterId = guestLetterRes.data?.letter?._id;
+    const guestUnlockToken = guestLetterRes.data?.letter?.unlockToken;
+    check("create external recipient letter returns unlock token", guestLetterRes.status === 201 && Boolean(guestUnlockToken));
+
+    // Verify sender's crewMembers array was updated
+    const updatedPaulDoc = await User.findOne({ email: "paul.test@x.io" });
+    const crewAdded = updatedPaulDoc?.crewMembers?.some((c) => c.email === "sanji.chef@baratie.sea");
+    check("recipient saved to sender crew address book", Boolean(crewAdded));
+
+    // Sealed guest letter cannot be unlocked before delivery (423)
+    const preDeliverUnlock = await req("GET", `/letters/unlock/${guestUnlockToken}`);
+    check("guest unlock fails before delivery (423)", preDeliverUnlock.status === 423);
+
+    // Force deliver guest letter
+    await req("POST", `/dev/deliver/${guestLetterId}`, { token: paul.accessToken });
+
+    // Guest accesses without auth token
+    const guestUnlockRes = await req("GET", `/letters/unlock/${guestUnlockToken}`);
+    check("unauthenticated guest unlock succeeds once delivered", guestUnlockRes.status === 200);
+    check("guest unlocked letter reveals body", guestUnlockRes.data?.letter?.body?.includes("Feed anyone"));
+
+    // Invalid unlock token returns 404
+    const invalidTokenRes = await req("GET", "/letters/unlock/non-existent-uuid-token");
+    check("invalid unlock token returns 404", invalidTokenRes.status === 404);
+
+    // Dev SuperPeek & Dev Route E2E Tests (HFJ-003)
+    const futureCapsule = await Letter.create({
+      sender: paulDoc._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: "paul.test@x.io",
+      recipientName: "Paul",
+      subject: "Secret Pirate Map",
+      body: "<p>Hidden treasure is buried at coordinates 42, -71.</p>",
+      deliveryDate: new Date(Date.now() + 5 * 365 * 24 * 3600 * 1000), // 5 years in future
+      status: "sealed"
+    });
+
+    // SuperPeek returns full body in dev mode
+    const peekRes = await req("GET", `/dev/peek/${futureCapsule._id}`, { token: paul.accessToken });
+    check("superpeek returns unredacted body for sealed letter", peekRes.status === 200 && peekRes.data?.letter?.body?.includes("Hidden treasure"));
+    check("superpeek letter is marked as superPeek", peekRes.data?.letter?.superPeek === true);
+
+    // Verify letter in DB is still sealed
+    const futureDocAfter = await Letter.findById(futureCapsule._id);
+    check("superpeek does not modify sealed status in database", futureDocAfter.status === "sealed");
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

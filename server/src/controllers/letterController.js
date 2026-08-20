@@ -27,6 +27,24 @@ function senderView(sender) {
   };
 }
 
+const PIRATE_ALIASES = [
+  "Ghost of Jaya",
+  "Grand Line Voyager",
+  "Sailing Scribe",
+  "Sky Island Dreamer",
+  "Wandering Buccaneer",
+  "Water 7 Shipwright",
+  "East Blue Pilgrim",
+  "All Blue Explorer",
+  "Brave Warrior of the Sea"
+];
+
+function getPirateAlias(letterId) {
+  const str = String(letterId || "");
+  const hash = str.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return PIRATE_ALIASES[hash % PIRATE_ALIASES.length];
+}
+
 /** Shape a letter for the client. `redactBody` hides content for sealed chests. */
 function buildLetterPreview(letter, { redactBody = false } = {}) {
   return {
@@ -48,10 +66,10 @@ function buildLetterPreview(letter, { redactBody = false } = {}) {
     deliveredAt: letter.deliveredAt,
     openedAt: letter.openedAt,
     status: letter.status,
-    visibility: letter.visibility,
     unlockToken: letter.unlockToken,
-    likes: letter.likes,
     capsuleTheme: letter.capsuleTheme,
+    visibility: letter.visibility || "private",
+    likes: letter.likes || 0,
     createdAt: letter.createdAt
   };
 }
@@ -70,7 +88,7 @@ export async function createLetter(req, res, next) {
       return res.status(403).json({ message: "Verify your email before setting sail" });
     }
 
-    const letterType = ["self", "partner", "us"].includes(req.body.letterType)
+    const letterType = ["self", "partner", "us", "other"].includes(req.body.letterType)
       ? req.body.letterType
       : req.body.isSelfLetter === false
         ? "partner"
@@ -82,6 +100,27 @@ export async function createLetter(req, res, next) {
     if (letterType === "self") {
       recipientEmail = sender.email;
       recipientName = sender.displayName || sender.username;
+    } else if (letterType === "other") {
+      if (!req.body.recipientEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.recipientEmail)) {
+        return res.status(400).json({ message: "Provide a valid recipient email" });
+      }
+      recipientEmail = String(req.body.recipientEmail).toLowerCase().trim();
+      recipientName = req.body.recipientName || "";
+
+      // Add to crew if requested
+      if (req.body.addToCrew) {
+        if (!sender.crewMembers) sender.crewMembers = [];
+        const alreadyInCrew = sender.crewMembers.some(
+          (c) => c.email.toLowerCase() === recipientEmail.toLowerCase()
+        );
+        if (!alreadyInCrew) {
+          sender.crewMembers.push({
+            name: recipientName || recipientEmail,
+            email: recipientEmail
+          });
+          await sender.save();
+        }
+      }
     } else {
       if (!sender.partner) {
         return res.status(400).json({ message: "Pair with your partner before writing to them" });
@@ -120,6 +159,10 @@ export async function createLetter(req, res, next) {
       };
     }
 
+    const visibility = ["private", "public_anonymous", "public_named"].includes(req.body.visibility)
+      ? req.body.visibility
+      : "private";
+
     const letter = await Letter.create({
       sender: sender._id,
       letterType,
@@ -129,9 +172,9 @@ export async function createLetter(req, res, next) {
       subject: req.body.subject || "A Treasure From Your Past",
       body,
       deliveryDate,
-      visibility: req.body.visibility || "private",
       unlockToken,
       capsuleTheme: req.body.capsuleTheme || "default",
+      visibility,
       song,
       replyTo: req.body.replyTo || null
     });
@@ -200,7 +243,7 @@ export async function getLetterById(req, res, next) {
 
     const { isSender, isRecipient } = relationTo(letter, req.user);
 
-    if (letter.visibility === "private" && !isSender && !isRecipient) {
+    if (!isSender && !isRecipient) {
       return res.status(403).json({ message: "Captain, this chest isn't yours to open" });
     }
 
@@ -210,8 +253,15 @@ export async function getLetterById(req, res, next) {
       return res.status(423).json({ message: `This chest is still sealed. It opens on ${when}.` });
     }
 
+    // Nor can the captain who packed it: reading back your own letter to your future
+    // self defeats the whole voyage. The sender reaches the words only through the
+    // edit endpoint, and only while the 24h window is open.
+    if (letter.status !== "delivered") {
+      return res.json({ letter: buildLetterPreview(letter, { redactBody: true }) });
+    }
+
     // Stamp the first opening (the reveal moment) when a recipient opens it.
-    if (letter.status === "delivered" && isRecipient && !letter.openedAt) {
+    if (isRecipient && !letter.openedAt) {
       letter.openedAt = new Date();
       await letter.save();
     }
@@ -222,26 +272,22 @@ export async function getLetterById(req, res, next) {
   }
 }
 
-export async function getPublicLetters(req, res, next) {
+/**
+ * The sender's editing view: the only way to read back a sealed letter, and only
+ * while it's still editable (>24h out). Keeps `getLetterById` honest.
+ */
+export async function getLetterForEdit(req, res, next) {
   try {
-    const letters = await Letter.find({
-      visibility: { $in: ["public_anonymous", "public_named"] },
-      status: "delivered"
-    })
-      .sort({ deliveredAt: -1, likes: -1 })
-      .limit(40)
-      .populate("sender");
+    const letter = await Letter.findById(req.params.id).populate("sender attachments");
+    if (!letter) return res.status(404).json({ message: "Letter not found" });
+    if (String(letter.sender?._id || letter.sender) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Only the sender can alter this treasure" });
+    }
+    if (!canEditLetter(letter)) {
+      return res.status(423).json({ message: "This chest is already sealed for delivery" });
+    }
 
-    const normalized = letters.map((letter) => ({
-      ...buildLetterPreview(letter),
-      publicAuthor:
-        letter.visibility === "public_named"
-          ? letter.sender?.username || "Unknown Captain"
-          : "Ghost of Jaya",
-      preview: String(letter.body || "").replace(/<[^>]*>/g, "").slice(0, 140)
-    }));
-
-    return res.json({ letters: normalized });
+    return res.json({ letter: buildLetterPreview(letter) });
   } catch (error) {
     return next(error);
   }
@@ -283,12 +329,27 @@ export async function updateLetter(req, res, next) {
     if (req.body.body) letter.body = DOMPurify.sanitize(req.body.body);
     if (req.body.subject !== undefined) letter.subject = req.body.subject;
     if (req.body.deliveryDate) letter.deliveryDate = new Date(req.body.deliveryDate);
-    if (req.body.visibility) letter.visibility = req.body.visibility;
     if (req.body.capsuleTheme) letter.capsuleTheme = req.body.capsuleTheme;
-    if (req.body.song?.url !== undefined) letter.song = req.body.song;
+    if (req.body.song !== undefined) letter.song = req.body.song || undefined;
+    if (req.body.visibility && ["private", "public_anonymous", "public_named"].includes(req.body.visibility)) {
+      letter.visibility = req.body.visibility;
+    }
+
+    // Re-link attachments (same ownership rule as createLetter): whatever the
+    // editor sends is now the full set for this chest.
+    if (Array.isArray(req.body.attachments)) {
+      const owned = await Attachment.find({
+        _id: { $in: req.body.attachments },
+        uploader: req.user.id
+      });
+      const ids = owned.map((a) => a._id);
+      await Attachment.updateMany({ _id: { $in: ids } }, { $set: { letter: letter._id } });
+      letter.attachments = ids;
+    }
 
     await letter.save();
-    return res.json({ letter: buildLetterPreview(letter) });
+    const populated = await letter.populate("attachments");
+    return res.json({ letter: buildLetterPreview(populated) });
   } catch (error) {
     return next(error);
   }
@@ -315,15 +376,69 @@ export async function deleteLetter(req, res, next) {
   }
 }
 
+export async function getPublicLetters(req, res, next) {
+  try {
+    const { sort = "recent", limit = 50 } = req.query;
+    let sortObj = { deliveredAt: -1, createdAt: -1 };
+    if (sort === "most_liked") {
+      sortObj = { likes: -1, deliveredAt: -1 };
+    } else if (sort === "long_journey") {
+      sortObj = { sentAt: 1, deliveredAt: -1 };
+    }
+
+    const letters = await Letter.find({
+      status: "delivered",
+      visibility: { $in: ["public_anonymous", "public_named"] }
+    })
+      .sort(sortObj)
+      .limit(Math.min(parseInt(limit, 10) || 50, 100))
+      .populate("sender attachments");
+
+    const previews = letters.map((letter) => {
+      const isAnonymous = letter.visibility === "public_anonymous";
+      return {
+        _id: letter._id,
+        subject: letter.subject,
+        body: letter.body,
+        capsuleTheme: letter.capsuleTheme,
+        visibility: letter.visibility,
+        likes: letter.likes || 0,
+        sentAt: letter.sentAt,
+        deliveredAt: letter.deliveredAt,
+        attachments: letter.attachments,
+        song: letter.song,
+        senderInfo: isAnonymous
+          ? {
+              username: getPirateAlias(letter._id),
+              displayName: getPirateAlias(letter._id),
+              avatar: null,
+              isAnonymous: true
+            }
+          : senderView(letter.sender)
+      };
+    });
+
+    return res.json({ letters: previews });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 export async function likeLetter(req, res, next) {
   try {
-    const letter = await Letter.findById(req.params.id);
-    if (!letter || !["public_anonymous", "public_named"].includes(letter.visibility)) {
-      return res.status(404).json({ message: "Letter not found" });
+    const letter = await Letter.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        status: "delivered",
+        visibility: { $in: ["public_anonymous", "public_named"] }
+      },
+      { $inc: { likes: 1 } },
+      { new: true }
+    );
+    if (!letter) {
+      return res.status(404).json({ message: "Delivered public letter not found" });
     }
-    letter.likes += 1;
-    await letter.save();
-    return res.json({ likes: letter.likes });
+    return res.json({ id: letter._id, likes: letter.likes });
   } catch (error) {
     return next(error);
   }

@@ -1,0 +1,22 @@
+{
+  "name": "HeyFutureJasmine!",
+  "short_name": "HeyFutureJasmine",
+  "description": "Letters sealed in a chest, delivered when the time is right.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#150C22",
+  "theme_color": "#150C22",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

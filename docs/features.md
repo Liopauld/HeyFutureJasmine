@@ -47,4 +47,9 @@ This document tracks all completed and shipped features for HeyFutureJasmine!.
 - **Countdown Widget:** Added live anniversary countdown widget in `PartnerPairCard.jsx` showing days until next shared milestone.
 - **Composer Milestone Presets:** Added 'On Our Next Anniversary' 1-click preset button in `DeliveryDatePicker.jsx`.
 - **Couple Capsule Ribbon:** Added '💖 Crew of Two' badge to partner and shared capsules in `LetterCard.jsx`.
-- **E2E Smoke Tests:** Added automated tests in `smoke.js` verifying anniversary persistence and partner sync.
+### HFJ-011: In-Browser Voice Memo Recording & Audio Waveform Visualizer (Sprint 4)
+- **Voice Memo Recording:** Built native in-browser voice memo recording using `MediaRecorder` API with live duration timer.
+- **Waveform Canvas Visualizer:** Implemented real-time audio waveform canvas visualizer in `VoiceRecorder.jsx` using Web Audio API `AnalyserNode`.
+- **Vintage Gramophone Player:** Created `GramophonePlayer.jsx` for delivered letters featuring spinning vinyl disc animation, scrub progress bar, and duration tracker.
+- **E2E Smoke Tests:** Added automated assertions in `smoke.js` testing voice attachment creation, kind/resourceType classification, and letter population.
+

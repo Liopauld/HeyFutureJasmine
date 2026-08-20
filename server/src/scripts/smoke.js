@@ -27,6 +27,7 @@ async function main() {
   const { connectDb } = await import("../config/db.js");
   const { User } = await import("../models/User.js");
   const { Letter } = await import("../models/Letter.js");
+  const { Attachment } = await import("../models/Attachment.js");
   await connectDb();
 
   const server = app.listen(0);
@@ -385,6 +386,39 @@ async function main() {
     // Verify synced to partner automatically
     const updatedJasDoc = await User.findOne({ email: "jasmine.test@x.io" });
     check("shared anniversary automatically syncs to partner", Boolean(updatedJasDoc.anniversary));
+
+    // Voice Memo & Audio Waveform E2E Tests (HFJ-011)
+    const voiceAttachment = await Attachment.create({
+      uploader: paulDoc._id,
+      cloudinaryPublicId: "hfj_voice_test_123",
+      url: "http://res.cloudinary.com/demo/video/upload/voice-note.webm",
+      secureUrl: "https://res.cloudinary.com/demo/video/upload/voice-note.webm",
+      resourceType: "video",
+      kind: "voice",
+      duration: 12.5,
+      originalName: "voice-note.webm",
+      fileSize: 45000,
+      format: "webm"
+    });
+    check("create voice attachment with kind 'voice' and resourceType 'video'", voiceAttachment.kind === "voice" && voiceAttachment.resourceType === "video");
+
+    // Link voice attachment to letter
+    const voiceLetter = await Letter.create({
+      sender: paulDoc._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: "paul.test@x.io",
+      recipientName: "Paul",
+      subject: "Voice From The Sea",
+      body: "<p>Listen to the tide.</p>",
+      deliveryDate: new Date(Date.now() + 1000),
+      attachments: [voiceAttachment._id],
+      status: "delivered",
+      deliveredAt: new Date()
+    });
+
+    const voiceLetterRes = await req("GET", `/letters/${voiceLetter._id}`, { token: paul.accessToken });
+    check("delivered letter populates voice attachment", voiceLetterRes.data?.letter?.attachments?.some((a) => a.kind === "voice"));
   } finally {
     server.close();
     const mongoose = (await import("mongoose")).default;

@@ -5,6 +5,7 @@ import { ArrowLeft, PenLine, Volume2 } from "lucide-react";
 import { useLetter, useLetterByToken } from "../hooks/useLetters.js";
 import AnimatedChest from "../components/letter/AnimatedChest.jsx";
 import SongEmbed from "../components/letter/SongEmbed.jsx";
+import GramophonePlayer from "../components/letter/GramophonePlayer.jsx";
 import GoldDust from "../components/effects/GoldDust.jsx";
 import SparkBurst from "../components/effects/SparkBurst.jsx";
 import LoadingCompass from "../components/common/LoadingCompass.jsx";
@@ -150,10 +151,7 @@ export default function TreasureChest() {
 
               {voice ? (
                 <div className="mt-6">
-                  <p className="mb-1 flex items-center gap-1.5 text-xs uppercase tracking-wider text-ink/50">
-                    <Volume2 className="h-3.5 w-3.5" /> A voice from that day
-                  </p>
-                  <audio controls src={voice.secureUrl} className="w-full" />
+                  <GramophonePlayer voice={voice} />
                 </div>
               ) : null}
 

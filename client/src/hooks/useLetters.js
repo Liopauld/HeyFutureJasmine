@@ -17,6 +17,20 @@ export function useLetter(id) {
   });
 }
 
+/**
+ * The sender's editing view. A sealed chest is redacted everywhere else, so this
+ * is the only way back to the words — and only while the 24h window is open.
+ */
+export function useLetterForEdit(id) {
+  return useQuery({
+    queryKey: ["letter", id, "edit"],
+    enabled: Boolean(id),
+    retry: false,
+    gcTime: 0,
+    queryFn: async () => (await api.get(`/letters/${id}/edit`)).data.letter
+  });
+}
+
 export function useLetterByToken(token) {
   return useQuery({
     queryKey: ["unlock", token],
@@ -31,6 +45,17 @@ export function useCreateLetter() {
   return useMutation({
     mutationFn: async (payload) => (await api.post("/letters", payload)).data.letter,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["letters"] })
+  });
+}
+
+export function useUpdateLetter() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }) => (await api.patch(`/letters/${id}`, payload)).data.letter,
+    onSuccess: (_letter, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["letters"] });
+      queryClient.invalidateQueries({ queryKey: ["letter", id] });
+    }
   });
 }
 
@@ -50,6 +75,24 @@ export function useForceDeliver() {
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["letters"] });
       queryClient.invalidateQueries({ queryKey: ["letter", id] });
+      queryClient.invalidateQueries({ queryKey: ["public-letters"] });
+    }
+  });
+}
+
+export function usePublicLetters(sort = "recent") {
+  return useQuery({
+    queryKey: ["public-letters", sort],
+    queryFn: async () => (await api.get(`/letters/public?sort=${sort}`)).data.letters
+  });
+}
+
+export function useLikeLetter() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => (await api.post(`/letters/${id}/like`)).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["public-letters"] });
     }
   });
 }

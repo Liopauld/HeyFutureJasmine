@@ -108,6 +108,39 @@ async function seed() {
       deliveryDate: days(365),
       status: "sealed",
       capsuleTheme: "skypiea"
+    },
+    // Public delivered letters on the Noticeboard
+    {
+      sender: paul._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: paulEmail,
+      recipientName: "Paul",
+      subject: "A message to any voyager braving the Grand Line",
+      body: "<p>The sea is endless, but with true nakama by your side, no storm is insurmountable. Never give up on your dreams!</p>",
+      deliveryDate: days(-10),
+      sentAt: days(-180),
+      status: "delivered",
+      deliveredAt: days(-10),
+      capsuleTheme: "gold",
+      visibility: "public_named",
+      likes: 12
+    },
+    {
+      sender: jasmine._id,
+      letterType: "self",
+      isSelfLetter: true,
+      recipientEmail: jasmineEmail,
+      recipientName: "Jasmine",
+      subject: "Finding light in the darkest waters",
+      body: "<p>Remember why you embarked on this voyage. Every sunrise over the ocean brings new hope and new treasures.</p>",
+      deliveryDate: days(-5),
+      sentAt: days(-60),
+      status: "delivered",
+      deliveredAt: days(-5),
+      capsuleTheme: "skypiea",
+      visibility: "public_named",
+      likes: 24
     }
   ]);
 

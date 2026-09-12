@@ -1,7 +1,12 @@
 import { Resend } from "resend";
 
-const apiKey = process.env.RESEND_API_KEY;
-const resend = apiKey ? new Resend(apiKey) : null;
+const rawApiKey = process.env.RESEND_API_KEY;
+const isRealResendKey =
+  rawApiKey &&
+  rawApiKey !== "your_resend_api_key" &&
+  !rawApiKey.startsWith("your_") &&
+  rawApiKey.trim().length > 10;
+const resend = isRealResendKey ? new Resend(rawApiKey.trim()) : null;
 const FROM = process.env.EMAIL_FROM || "HeyFutureJasmine <no-reply@heyfuturejasmine.app>";
 
 function clientUrl() {
@@ -38,14 +43,20 @@ function shell({ heading, intro, ctaText, ctaUrl, footnote }) {
   </div>`;
 }
 
-/** Low-level send. Falls back to console logging when Resend isn't configured. */
+/** Low-level send. Falls back to console logging when Resend isn't configured or fails. */
 export async function sendEmail({ to, subject, html }) {
   const recipients = Array.isArray(to) ? to : [to];
   if (!resend) {
     console.log(`\n[email:dev] → ${recipients.join(", ")}\n[subject] ${subject}\n`);
     return { mocked: true };
   }
-  return resend.emails.send({ from: FROM, to: recipients, subject, html });
+  try {
+    return await resend.emails.send({ from: FROM, to: recipients, subject, html });
+  } catch (err) {
+    console.warn(`Resend email delivery failed (${err.message}). Logging to console instead.`);
+    console.log(`\n[email:dev] → ${recipients.join(", ")}\n[subject] ${subject}\n`);
+    return { mocked: true, error: err.message };
+  }
 }
 
 export async function sendVerificationEmail(email, token) {

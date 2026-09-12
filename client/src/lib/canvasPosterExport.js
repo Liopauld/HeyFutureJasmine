@@ -2,6 +2,14 @@
  * Generates an authentic One Piece style Wanted Poster on HTML5 Canvas (1200x1600px).
  */
 export async function generatePosterCanvas(user) {
+  if (typeof document !== "undefined" && document.fonts?.ready) {
+    try {
+      await document.fonts.ready;
+    } catch {
+      /* ignore font loading errors and proceed */
+    }
+  }
+
   const canvas = document.createElement("canvas");
   canvas.width = 1200;
   canvas.height = 1600;
@@ -73,9 +81,14 @@ export async function generatePosterCanvas(user) {
   ctx.font = "900 72px 'Cinzel Decorative', 'Georgia', serif";
   ctx.fillText("DEAD OR ALIVE", 600, 1050);
 
-  // 5. Name
+  // 5. Name (with dynamic font sizing to prevent overflowing)
   const name = (user?.displayName || user?.username || "PIRATE").toUpperCase();
-  ctx.font = "900 84px 'Cinzel Decorative', 'Georgia', serif";
+  let fontSize = 84;
+  ctx.font = `900 ${fontSize}px 'Cinzel Decorative', 'Georgia', serif`;
+  while (ctx.measureText(name).width > 900 && fontSize > 36) {
+    fontSize -= 4;
+    ctx.font = `900 ${fontSize}px 'Cinzel Decorative', 'Georgia', serif`;
+  }
   ctx.fillText(name, 600, 1180);
 
   // 6. Title / Rank

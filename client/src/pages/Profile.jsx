@@ -77,38 +77,6 @@ export default function Profile() {
     }
   };
 
-  const generateInvite = async () => {
-    try {
-      const code = await createInvite.mutateAsync();
-      setInviteCode(code);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Couldn't create an invite.");
-    }
-  };
-
-  const acceptCode = async (e) => {
-    e.preventDefault();
-    try {
-      const p = await acceptInvite.mutateAsync(enteredCode.trim());
-      toast.success(`Paired with ${p.displayName || p.username}. Crew of two!`);
-      setEnteredCode("");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "That code didn't work.");
-    }
-  };
-
-  const copyCode = () => {
-    navigator.clipboard?.writeText(inviteCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  const handleUnpair = async () => {
-    if (!window.confirm("Part ways with your partner on here?")) return;
-    await unpair.mutateAsync();
-    toast.success("Unpaired.");
-  };
-
   return (
     <section className="mx-auto max-w-2xl space-y-6">
       <h1 className="font-display text-3xl text-gold">Wanted Poster</h1>

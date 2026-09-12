@@ -263,7 +263,7 @@ export default function TreasureChest() {
       </AnimatePresence>
 
       {/* Gold flare during the opening beat */}
-      {phase === "opening" ? (
+      {phase === "unlocking" || phase === "opened" ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: [0, 0.85, 0] }}

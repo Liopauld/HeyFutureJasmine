@@ -1,5 +1,7 @@
 # 🏴‍☠️ HeyFutureJasmine!
 
+[![CI Pipeline](https://github.com/Liopauld/HeyFutureJasmine/actions/workflows/ci.yml/badge.svg)](https://github.com/Liopauld/HeyFutureJasmine/actions/workflows/ci.yml)
+
 A One Piece–themed **time-capsule for two**. Write letters to your own future self or to
 each other, seal them in a treasure chest, and let the tides deliver them on a chosen day —
 opened as a cinematic "chest washing ashore."

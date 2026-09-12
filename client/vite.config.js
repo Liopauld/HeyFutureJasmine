@@ -11,6 +11,20 @@ export default defineConfig({
     alias: {
       "@": path.resolve(dirname, "./src"),
       "@shared": path.resolve(dirname, "../shared")
-    }
+    },
+    dedupe: ["react", "react-dom", "react-router-dom", "react-router"]
+  },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@tanstack/react-query",
+      "date-fns",
+      "framer-motion",
+      "lucide-react",
+      "sonner",
+      "axios"
+    ]
   }
 });

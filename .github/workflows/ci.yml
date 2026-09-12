@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The smoke test spins up an in-memory MongoDB — no services needed.
+      - name: Install server deps
+        working-directory: server
+        run: npm ci
+      - name: Smoke test the API
+        working-directory: server
+        run: npm run smoke
+
+      - name: Install client deps
+        working-directory: client
+        run: npm ci
+      - name: Build the client
+        working-directory: client
+        run: npm run build

@@ -74,7 +74,7 @@ export async function login(req, res, next) {
 
     const accessToken = signAccessToken(buildAuthPayload(user));
     const refreshToken = signRefreshToken(buildAuthPayload(user));
-    user.refreshTokens.push(refreshToken);
+    user.refreshTokens = [...(user.refreshTokens || []).slice(-9), refreshToken];
     await user.save();
 
     setRefreshCookie(res, refreshToken);
@@ -178,6 +178,7 @@ export async function resetPassword(req, res, next) {
     }
 
     user.passwordHash = await hashPassword(password);
+    user.refreshTokens = [];
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();

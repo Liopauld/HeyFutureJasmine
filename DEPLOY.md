@@ -4,11 +4,18 @@ The repo ships a `render.yaml` Blueprint that provisions two services:
 
 | Service | Type | Root | What it is |
 |---|---|---|---|
-| `heyfuturejasmine-api` | Web (Node) | `server/` | Express API |
-| `heyfuturejasmine-web` | Static | `client/` | Vite React frontend |
+| `heyfuturejasmine-api` | Web (Node) | Repository root | Express API in `server/` |
+| `heyfuturejasmine-web` | Static | Repository root | Vite React frontend in `client/` |
 
-Redis is intentionally skipped — the daily cron **delivery sweep** delivers
+Leave Render's **Root Directory** empty for both services. The frontend imports
+schemas from `shared/`, which Render would exclude with a `client/` root directory.
+The Blueprint runs commands with the appropriate subdirectory paths and publishes
+`client/dist`. It also sets `NODE_VERSION=24.14.1` explicitly for both services.
+
+Redis is intentionally skipped — the five-minute cron **delivery sweep** delivers
 letters without it. MongoDB is hosted separately on **MongoDB Atlas** (free M0).
+
+Node is pinned to 24.14.1 in `.node-version` for local development, CI, and Render.
 
 ---
 
@@ -32,9 +39,12 @@ letters without it. MongoDB is hosted separately on **MongoDB Atlas** (free M0).
    - `MONGODB_URI` — the Atlas string from step 1.
    - `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET`
      — optional; leave blank to disable photo/voice uploads.
-   - `RESEND_API_KEY` — optional; leave blank and emails log to the service
-     console instead of sending.
-   - `CLIENT_URLS` and `VITE_API_URL` — leave blank for now (step 3).
+   - `RESEND_API_KEY` — required for a public launch: verification, password
+     reset, and delivery emails need a working key and a verified `EMAIL_FROM`
+     sender. Leaving it blank only logs email subjects; users cannot verify
+     their accounts from those logs.
+   - `CLIENT_URL` and `CLIENT_URLS` — set after noting the frontend URL (step 3).
+   - `VITE_API_URL` belongs to **`heyfuturejasmine-web`**, not the API (step 3).
    - `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` are auto-generated — skip them.
 4. Click **Apply**. Both services build and deploy. Note the two URLs, e.g.
    `https://heyfuturejasmine-api.onrender.com` and
@@ -50,14 +60,34 @@ CORS + the cross-site auth cookie. After the first deploy:
   then **Manual Deploy → Clear build cache & deploy** (Vite bakes env vars at
   build time, so it must rebuild).
 - On **`heyfuturejasmine-api`** → Environment → set
+  `CLIENT_URL = https://heyfuturejasmine-web.onrender.com` and
   `CLIENT_URLS = https://heyfuturejasmine-web.onrender.com`
-  (comma-separate if you add a custom domain later). Saving redeploys it.
+  (comma-separate `CLIENT_URLS` if you add a custom domain later). `CLIENT_URL`
+  is the canonical frontend URL used in email links; if absent, the first
+  origin in `CLIENT_URLS` is used. Saving redeploys the API.
+- The Blueprint sets `TRUST_PROXY=1` for Render's reverse proxy. This keeps
+  rate limits per client IP. If adding another proxy, verify the proxy chain
+  and adjust the hop count; do not use an unrestricted `trust proxy=true`.
 
 ## 4. Verify
 
 - `https://heyfuturejasmine-api.onrender.com/api/health` → `{"status":"ok"}`
 - Open the web URL, register, write a letter, and use a near-future delivery
   date to watch the reveal.
+- Receive a real verification email, follow its HTTPS link, then test password
+  reset, login, page reload, and refresh-token renewal in your target browsers.
+- With Cloudinary configured, upload a photo and a voice note. Uploads and avatars
+  are limited to 8 MB per file; an oversized upload returns `413`.
+- Confirm `/api/dev/sweep` is unavailable in production.
+
+Before deploying, run `npm test`, `npm run build`, and `npm audit --prefix server`
+plus `npm audit --prefix client`. The deployment tests use temporary MongoDB and
+mock email HTTP responses; the checks above still require your live services.
+
+The patched frontend uses Tailwind 4 and targets Safari 16.4+, Chrome 111+, and
+Firefox 128+. The editor preserves the existing formatting toolbar and letter HTML.
+To roll back this code/configuration change, redeploy the preceding commit with
+its matching lockfiles; no database migration is required.
 
 ---
 
@@ -85,5 +115,5 @@ CORS + the cross-site auth cookie. After the first deploy:
   switches the refresh-token cookie to `SameSite=None; Secure` so it works
   across the two subdomains.
 - **Custom domain:** add it to the web service, then append it to
-  `CLIENT_URLS` on the API and rebuild the web service with the new
+  `CLIENT_URLS` and update `CLIENT_URL` on the API, then rebuild the web service with the new
   `VITE_API_URL` if the API domain also changes.

@@ -40,7 +40,13 @@ export default function RichTextEditor({ value, onChange }) {
   const [showPrompts, setShowPrompts] = useState(false);
 
   const editor = useEditor({
-    extensions: [StarterKit.configure({ heading: { levels: [2, 3] } })],
+    extensions: [StarterKit.configure({
+      heading: { levels: [2, 3] },
+      link: false,
+      underline: false,
+      trailingNode: false
+    })],
+    shouldRerenderOnTransaction: true,
     content: value || "",
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
     editorProps: {

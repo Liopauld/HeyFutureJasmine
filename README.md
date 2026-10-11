@@ -21,7 +21,7 @@ opened as a cinematic "chest washing ashore."
 
 ## Local setup
 
-Prereqs: Node 20+, and Docker (for Mongo + Redis) or a local MongoDB.
+Prereqs: Node 24.14.1 (see `.node-version`), and Docker (for Mongo + Redis) or a local MongoDB.
 
 ```bash
 # 1. Install deps
@@ -54,9 +54,10 @@ Seeded logins (password `grandline`): `paul@heyfuturejasmine.app`, `jasmine@heyf
 ## Scripts
 | Where | Command | Does |
 |---|---|---|
-| server | `npm run dev` | Start API (nodemon) |
+| server | `npm run dev` | Start API (Node watch mode) |
 | server | `npm run seed` | Reset + seed Paul & Jasmine |
 | server | `npm run smoke` | End-to-end test on an in-memory Mongo (no Docker needed) |
+| server | `npm run test:deployment` | Production configuration regression tests |
 | client | `npm run dev` | Start the web app |
 | client | `npm run build` | Production build |
 

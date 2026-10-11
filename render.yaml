@@ -6,8 +6,8 @@
 # sync:false below so they are NOT stored in git):
 #   API service:  MONGODB_URI, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET,
 #                 CLOUDINARY_* (optional), RESEND_API_KEY (optional)
-# CLIENT_URLS and VITE_API_URL are cross-wired automatically once both
-# services exist — see the notes in DEPLOY.md.
+# Set CLIENT_URL, CLIENT_URLS and VITE_API_URL after both services exist.
+# See DEPLOY.md for the values to use.
 
 services:
   # ── Backend: Express API ─────────────────────────────
@@ -15,14 +15,18 @@ services:
     name: heyfuturejasmine-api
     runtime: node
     plan: free
-    rootDir: server
-    buildCommand: npm ci
-    startCommand: node index.js
+    # Build from the repo root so the shared schemas remain available.
+    buildCommand: npm ci --prefix server
+    startCommand: node server/index.js
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
+      - key: NODE_VERSION
+        value: "24.14.1"
       - key: NODE_ENV
         value: production
+      - key: TRUST_PROXY
+        value: "1"
       # Redis is intentionally omitted — the daily delivery sweep handles
       # letter delivery when Redis is absent. Add REDIS_HOST later if desired.
       - key: JWT_ACCESS_EXPIRY
@@ -41,6 +45,8 @@ services:
         sync: false
       - key: CLIENT_URLS
         sync: false
+      - key: CLIENT_URL
+        sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
@@ -54,9 +60,9 @@ services:
   - type: web
     name: heyfuturejasmine-web
     runtime: static
-    rootDir: client
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
+    # Vite imports ../shared; a client-only rootDir would exclude it.
+    buildCommand: npm ci --prefix client && npm run build --prefix client
+    staticPublishPath: client/dist
     autoDeploy: true
     # SPA fallback so client-side routes (e.g. /letters/:id) resolve.
     routes:
@@ -64,6 +70,8 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      - key: NODE_VERSION
+        value: "24.14.1"
       # Point the frontend at the API. Set this to the API's URL once it
       # exists, e.g. https://heyfuturejasmine-api.onrender.com/api
       - key: VITE_API_URL

@@ -11,6 +11,13 @@ import { sweepOnRequest } from "./middleware/sweepOnRequest.js";
 
 const app = express();
 
+// Trust only the configured proxy hops; local development has no proxy.
+const proxyHops = Number(process.env.TRUST_PROXY || 0);
+if (!Number.isInteger(proxyHops) || proxyHops < 0) {
+  throw new Error("TRUST_PROXY must be a non-negative integer");
+}
+app.set("trust proxy", proxyHops);
+
 app.use(helmet());
 const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || "http://localhost:5173")
   .split(",")

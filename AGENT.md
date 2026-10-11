@@ -46,7 +46,7 @@ HeyFutureJasmine!
 │   │   └── styles/             # globals.css (tokens, typography, surfaces)
 │   └── tailwind.config.js
 │
-├── server/                     # Node.js 20+ Express REST API
+├── server/                     # Node.js 24.14.1 Express REST API
 │   ├── src/
 │   │   ├── config/             # db.js, redis.js, cloudinary.js
 │   │   ├── controllers/        # authController, letterController, uploadController, userController
@@ -82,7 +82,7 @@ HeyFutureJasmine!
 | `docker compose up -d` | Root `/` | Start MongoDB (`27017`) and Redis (`6379`) containers |
 | `npm run seed` | `server/` | Reset and seed verified accounts (`paul@heyfuturejasmine.app`, `jasmine@heyfuturejasmine.app` / `grandline`) |
 | `npm run smoke` | `server/` | Run 21-point automated smoke test on in-memory Mongo (No Docker needed) |
-| `npm run dev` | `server/` | Launch Express API with nodemon |
+| `npm run dev` | `server/` | Launch Express API with Node watch mode |
 | `npm run dev` | `client/` | Launch Vite React dev server |
 | `npm run build` | `client/` | Validate TypeScript/JSX and build production bundle |
 

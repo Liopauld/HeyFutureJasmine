@@ -49,7 +49,7 @@ Three parts, one repo:
 
 ## 1. Prerequisites (one time)
 
-- **Node 20+** — check with `node -v`
+- **Node 24.14.1** (see `.node-version`) — check with `node -v`
 - **Docker Desktop** — for MongoDB + Redis (or bring your own local Mongo/Redis)
 
 You do **not** need Cloudinary, Resend, or Redis accounts to run and test the core
@@ -124,7 +124,7 @@ Re-run any time you want a clean slate.
 
 **Terminal 1 — API:**
 ```bash
-cd server && npm run dev        # nodemon → http://localhost:5001
+cd server && npm run dev        # Node watch mode → http://localhost:5001
 ```
 Sanity check it's up:
 ```bash
@@ -222,7 +222,7 @@ All optional — the app runs fully without them:
 |---|---|---|
 | root | `docker compose up -d` | Start Mongo + Redis |
 | root | `docker compose down` | Stop them (`-v` wipes data) |
-| server | `npm run dev` | Start API on :5001 (nodemon) |
+| server | `npm run dev` | Start API on :5001 (Node watch mode) |
 | server | `npm run seed` | Reset + seed Paul & Jasmine |
 | server | `npm run smoke` | Full end-to-end test, in-memory Mongo |
 | client | `npm run dev` | Start web app on :5173 |

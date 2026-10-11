@@ -10,7 +10,9 @@ const resend = isRealResendKey ? new Resend(rawApiKey.trim()) : null;
 const FROM = process.env.EMAIL_FROM || "HeyFutureJasmine <no-reply@heyfuturejasmine.app>";
 
 function clientUrl() {
-  return (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
+  const primaryOrigin = process.env.CLIENT_URLS?.split(",").find((origin) => origin.trim());
+  return (process.env.CLIENT_URL?.trim() || primaryOrigin?.trim() || "http://localhost:5173")
+    .replace(/\/$/, "");
 }
 
 /** Parchment-styled HTML email shell. */

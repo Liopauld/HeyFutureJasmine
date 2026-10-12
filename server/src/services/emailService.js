@@ -45,24 +45,58 @@ function shell({ heading, intro, ctaText, ctaUrl, footnote }) {
   </div>`;
 }
 
-/** Low-level send. Falls back to console logging when Resend isn't configured or fails. */
+/** Only local development may mock email. Production failures must be visible. */
 export async function sendEmail({ to, subject, html }) {
   const recipients = Array.isArray(to) ? to : [to];
+  if (process.env.EMAIL_PROVIDER === "brevo") {
+    try {
+      const apiKey = process.env.BREVO_API_KEY?.trim();
+      const senderEmail = process.env.BREVO_SENDER_EMAIL?.trim();
+      if (!apiKey || !senderEmail) throw new Error("BREVO_API_KEY and BREVO_SENDER_EMAIL are required");
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          sender: { name: "HeyFutureJasmine", email: senderEmail },
+          to: recipients.map((email) => ({ email })), subject, htmlContent: html
+        }),
+        signal: AbortSignal.timeout(15000)
+      });
+      const result = await response.json();
+      if (!response.ok || !result.messageId) throw new Error(result.message || `Brevo rejected the email (${response.status})`);
+      return { data: { id: result.messageId } };
+    } catch (err) {
+      console.warn(`[email] Brevo send failed: ${err.message}`);
+      const error = new Error("Email could not be sent. Please try again later.");
+      error.status = 503;
+      throw error;
+    }
+  }
   if (!resend) {
+    if (process.env.NODE_ENV === "production") {
+      const error = new Error("Email sending is not configured. Please try again later.");
+      error.status = 503;
+      console.warn("[email] RESEND_API_KEY is missing or invalid");
+      throw error;
+    }
     console.log(`\n[email:dev] → ${recipients.join(", ")}\n[subject] ${subject}\n`);
     return { mocked: true };
   }
   try {
-    return await resend.emails.send({ from: FROM, to: recipients, subject, html });
+    const result = await resend.emails.send({ from: FROM, to: recipients, subject, html });
+    if (result.error) throw new Error(result.error.message || "Resend rejected the email");
+    if (!result.data?.id) throw new Error("Resend did not accept the email");
+    return result;
   } catch (err) {
-    console.warn(`Resend email delivery failed (${err.message}). Logging to console instead.`);
-    console.log(`\n[email:dev] → ${recipients.join(", ")}\n[subject] ${subject}\n`);
-    return { mocked: true, error: err.message };
+    console.warn(`[email] Resend send failed: ${err.message}`);
+    const error = new Error("Email could not be sent. Please try again later.");
+    error.status = 503;
+    throw error;
   }
 }
 
 export async function sendVerificationEmail(email, token) {
-  await sendEmail({
+  return sendEmail({
     to: email,
     subject: "Verify your Log Pose, nakama",
     html: shell({

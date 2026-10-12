@@ -15,8 +15,12 @@ export default function Register() {
     event.preventDefault();
     setSubmitting(true);
     try {
-      await register(form);
-      toast.success("Your account has set sail. Check your email to verify.");
+      const result = await register(form);
+      if (result.verificationEmailSent) {
+        toast.success("Your account has set sail. Check your email to verify.");
+      } else {
+        toast.warning("Account created, but the verification email could not be sent. Use Resend verification to retry.");
+      }
       navigate("/log");
     } catch (error) {
       toast.error(error.response?.data?.message || "Taken by the sea…");

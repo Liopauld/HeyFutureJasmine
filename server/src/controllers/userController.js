@@ -1,26 +1,11 @@
 import crypto from "node:crypto";
 import { User } from "../models/User.js";
+import { publicUser } from "../utils/publicUser.js";
 import {
   isCloudinaryConfigured,
   uploadToCloudinary,
   deleteFromCloudinary
 } from "../services/cloudinaryService.js";
-
-/** Shape a user for the client (never leak hashes/tokens). */
-function publicUser(user) {
-  if (!user) return null;
-  return {
-    id: user._id,
-    username: user.username,
-    displayName: user.displayName || user.username,
-    email: user.email,
-    emailVerified: user.emailVerified,
-    pirateTitle: user.pirateTitle,
-    bounty: user.bounty,
-    avatar: user.avatar || null,
-    anniversary: user.anniversary || null
-  };
-}
 
 function genInviteCode() {
   return crypto.randomBytes(4).toString("hex").toUpperCase(); // 8 chars

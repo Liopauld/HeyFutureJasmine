@@ -2,6 +2,14 @@ import rateLimit from "express-rate-limit";
 
 const isTest = process.env.NODE_ENV === "test";
 
+export const verificationLimiter = isTest
+  ? (_req, _res, next) => next()
+  : rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 5,
+      message: { message: "Too many verification requests. Please check your inbox or wait." }
+    });
+
 // Letter creation: up to 5 per hour (disabled in test mode)
 export const letterLimiter = isTest
   ? (_req, _res, next) => next()

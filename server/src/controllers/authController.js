@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User.js";
+import { publicUser } from "../utils/publicUser.js";
 import { comparePassword, hashPassword } from "../utils/hash.js";
 import { signAccessToken, signRefreshToken } from "../utils/jwt.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../services/emailService.js";
@@ -45,7 +46,13 @@ export async function register(req, res, next) {
       emailVerificationToken
     });
 
-    await sendVerificationEmail(user.email, emailVerificationToken);
+    let verificationEmailSent = false;
+    try {
+      const result = await sendVerificationEmail(user.email, emailVerificationToken);
+      verificationEmailSent = !result.mocked;
+    } catch {
+      // Keep the created account usable; the signed-in user can retry sending.
+    }
 
     const accessToken = signAccessToken(buildAuthPayload(user));
     const refreshToken = signRefreshToken(buildAuthPayload(user));
@@ -53,7 +60,7 @@ export async function register(req, res, next) {
     await user.save();
 
     setRefreshCookie(res, refreshToken);
-    return res.status(201).json({ user: buildAuthPayload(user), accessToken });
+    return res.status(201).json({ user: publicUser(user), partner: null, accessToken, verificationEmailSent });
   } catch (error) {
     return next(error);
   }
@@ -62,7 +69,7 @@ export async function register(req, res, next) {
 export async function login(req, res, next) {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate("partner");
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -78,7 +85,7 @@ export async function login(req, res, next) {
     await user.save();
 
     setRefreshCookie(res, refreshToken);
-    return res.json({ user: buildAuthPayload(user), accessToken });
+    return res.json({ user: publicUser(user), partner: publicUser(user.partner), accessToken });
   } catch (error) {
     return next(error);
   }
@@ -115,13 +122,13 @@ export async function refresh(req, res, next) {
 
     jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-    const user = await User.findOne({ refreshTokens: refreshToken });
+    const user = await User.findOne({ refreshTokens: refreshToken }).populate("partner");
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     const accessToken = signAccessToken(buildAuthPayload(user));
-    return res.json({ accessToken, user: buildAuthPayload(user) });
+    return res.json({ accessToken, user: publicUser(user), partner: publicUser(user.partner) });
   } catch (error) {
     return next(error);
   }
@@ -142,6 +149,22 @@ export async function verifyEmail(req, res, next) {
   } catch (error) {
     return next(error);
   }
+}
+
+export async function resendVerification(req, res, next) {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.emailVerified) return res.json({ message: "Your email is already verified" });
+    // Reuse the token so retrying does not invalidate an email already in flight.
+    if (!user.emailVerificationToken) {
+      user.emailVerificationToken = crypto.randomUUID();
+      await user.save();
+    }
+    const result = await sendVerificationEmail(user.email, user.emailVerificationToken);
+    if (result.mocked) return res.status(503).json({ message: "Email sending is not configured. Please try again later." });
+    return res.json({ message: "Verification email sent. Check your inbox." });
+  } catch (error) { return next(error); }
 }
 
 export async function forgotPassword(req, res, next) {

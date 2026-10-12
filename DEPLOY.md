@@ -71,6 +71,32 @@ CORS + the cross-site auth cookie. After the first deploy:
 
 ## 4. Verify
 
+### Email without your own domain (small deployment)
+
+Create a free Brevo account. In **Settings → Senders, Domains & IPs → Senders**,
+add an email address you own (for example, your Gmail address) and verify it using
+the email Brevo sends. Enable transactional email if Brevo asks for account review.
+Create an **API key** under **SMTP & API** (use the API key, not the SMTP key).
+
+On the Render **API service**, set:
+
+```env
+EMAIL_PROVIDER=brevo
+BREVO_API_KEY=<your Brevo API key>
+BREVO_SENDER_EMAIL=<your verified sender email address>
+```
+
+Keep credentials in Render, not git or chat. Resend settings are ignored when
+`EMAIL_PROVIDER=brevo`. Keep `CLIENT_URL` pointed to the frontend so verification
+links open the app. Brevo currently substitutes its own sender domain for free
+email addresses; it describes this as a temporary solution:
+https://help.brevo.com/hc/en-us/articles/14925263522578-Comply-with-Gmail-Yahoo-and-Microsoft-s-requirements-for-email-senders
+
+After redeploying both services, existing unverified users can sign in and click
+**Resend verification**. Failed sends show an error instead of a success notice.
+
+### Live checks
+
 - `https://heyfuturejasmine-api.onrender.com/api/health` → `{"status":"ok"}`
 - Open the web URL, register, write a letter, and use a near-future delivery
   date to watch the reveal.

@@ -13,13 +13,15 @@ export function useAuth() {
 
   const register = async (payload) => {
     const { data } = await api.post("/auth/register", payload);
-    setAuth({ user: data.user, accessToken: data.accessToken });
+    queryClient.clear();
+    setAuth(data);
     return data;
   };
 
   const login = async (payload) => {
     const { data } = await api.post("/auth/login", payload);
-    setAuth({ user: data.user, accessToken: data.accessToken });
+    queryClient.clear();
+    setAuth(data);
     return data;
   };
 

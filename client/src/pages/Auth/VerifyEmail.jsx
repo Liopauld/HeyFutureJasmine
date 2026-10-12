@@ -3,6 +3,20 @@ import { useParams, Link } from "react-router-dom";
 import api from "../../lib/api.js";
 import AuthShell from "../../components/auth/AuthShell.jsx";
 import LoadingCompass from "../../components/common/LoadingCompass.jsx";
+import { useAuthStore } from "../../store/authStore.js";
+
+// Share the request across React StrictMode's effect replay; verification consumes a token.
+const verifications = new Map();
+function verify(token) {
+  if (!verifications.has(token)) {
+    const request = api.get(`/auth/verify-email/${token}`).catch((error) => {
+      verifications.delete(token);
+      throw error;
+    });
+    verifications.set(token, request);
+  }
+  return verifications.get(token);
+}
 
 export default function VerifyEmail() {
   const { token } = useParams();
@@ -10,9 +24,17 @@ export default function VerifyEmail() {
 
   useEffect(() => {
     let active = true;
-    api
-      .get(`/auth/verify-email/${token}`)
-      .then(() => active && setStatus("ok"))
+    verify(token)
+      .then(async () => {
+        if (!active) return;
+        setStatus("ok");
+        if (useAuthStore.getState().status === "authenticated") {
+          try {
+            const { data } = await api.get("/users/me");
+            if (active) useAuthStore.getState().setSession(data);
+          } catch { /* verification succeeded even if profile refresh fails */ }
+        }
+      })
       .catch(() => active && setStatus("error"));
     return () => {
       active = false;

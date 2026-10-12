@@ -5,6 +5,7 @@ import OceanBackground from "./components/layout/OceanBackground.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
 import PageWrapper from "./components/layout/PageWrapper.jsx";
 import RequireAuth from "./components/auth/RequireAuth.jsx";
+import VerificationBanner from "./components/auth/VerificationBanner.jsx";
 import LoadingCompass from "./components/common/LoadingCompass.jsx";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
 import DevInspectorBar from "./components/common/DevInspectorBar.jsx";
@@ -35,6 +36,7 @@ export default function App() {
       <OceanBackground />
       <Navbar />
       <PageWrapper>
+        <VerificationBanner />
         <ErrorBoundary>
           <Suspense fallback={<LoadingCompass full />}>
             <Routes>

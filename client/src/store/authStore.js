@@ -13,8 +13,8 @@ export const useAuthStore = create((set) => ({
   status: "loading",
 
   // Login / register: we get a fresh access token + user.
-  setAuth: ({ user, accessToken }) =>
-    set({ user, accessToken, status: "authenticated" }),
+  setAuth: ({ user, partner, accessToken }) =>
+    set({ user, partner: partner ?? null, accessToken, status: "authenticated" }),
 
   // Bootstrap / profile refresh: token already set by the interceptor.
   setSession: ({ user, partner }) =>

@@ -218,6 +218,9 @@ export async function createLetter(req, res, next) {
     await sendLetterSealedEmail({
       ...letter.toObject(),
       sender: { email: sender.email, username: sender.username }
+    }).catch(() => {
+      // The letter is already saved; an email failure must not report a failed save.
+      console.warn("[email] Letter saved, but its confirmation email could not be sent");
     });
 
     const populated = await letter.populate("attachments");

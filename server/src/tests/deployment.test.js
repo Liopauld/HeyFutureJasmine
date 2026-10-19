@@ -78,6 +78,8 @@ test("production deployment configuration", async (t) => {
       assert.match(res.headers.get("set-cookie"), /SameSite=None/);
       assert.match(emails[0].html, /https:\/\/frontend\.example\.test\/verify-email\//);
       assert.doesNotMatch(emails[0].html, /localhost/);
+      assert.match(emails[0].html, />https:\/\/frontend\.example\.test\/verify-email\/[^<]+<\/div>/);
+      assert.match(emails[0].text, /https:\/\/frontend\.example\.test\/verify-email\//);
     });
 
     await t.test("canonical CLIENT_URL overrides the CORS origin list for email links", async () => {
@@ -167,6 +169,14 @@ test("production deployment configuration", async (t) => {
         assert.equal(emails.at(-1).sender.email, "sender@gmail.com");
         assert.deepEqual(emails.at(-1).to, [{ email: "deployment@example.test" }]);
         assert.match(emails.at(-1).htmlContent, /https:\/\/frontend\.example\.test\/verify-email\//);
+        const { User } = await import("../models/User.js");
+        const user = await User.findOne({ email: "deployment@example.test" });
+        const directUrl = `https://frontend.example.test/verify-email/${user.emailVerificationToken}`;
+        assert.ok(emails.at(-1).htmlContent.includes(`>${directUrl}</div>`));
+        assert.ok(emails.at(-1).textContent.includes(directUrl));
+        const verified = await fetch(`${base}/api/auth/verify-email/${user.emailVerificationToken}`);
+        assert.equal(verified.status, 200);
+        assert.equal((await User.findById(user._id)).emailVerified, true);
         emailFailure = true;
         assert.equal((await post("/auth/forgot-password", {
           email: "deployment@example.test"

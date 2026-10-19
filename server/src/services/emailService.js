@@ -16,7 +16,7 @@ function clientUrl() {
 }
 
 /** Parchment-styled HTML email shell. */
-function shell({ heading, intro, ctaText, ctaUrl, footnote }) {
+function shell({ heading, intro, ctaText, ctaUrl, footnote, showDirectUrl = false }) {
   return `
   <div style="background:#070f1a;padding:32px 16px;font-family:'DM Sans',Arial,sans-serif;">
     <div style="max-width:560px;margin:0 auto;background:#f5eacf;border:1px solid #dfc9a0;border-radius:18px;
@@ -34,6 +34,14 @@ function shell({ heading, intro, ctaText, ctaUrl, footnote }) {
           : ""
       }
       ${
+        showDirectUrl && ctaUrl
+          ? `<div style="margin-top:18px;font-size:13px;color:#3a2a18;">
+               If the button doesn't open, copy and paste this address into your browser:
+               <div style="margin-top:8px;word-break:break-all;">${ctaUrl}</div>
+             </div>`
+          : ""
+      }
+      ${
         footnote
           ? `<div style="margin-top:22px;padding-top:16px;border-top:1px solid #dfc9a0;font-size:12px;color:#8a7355;">${footnote}</div>`
           : ""
@@ -46,7 +54,7 @@ function shell({ heading, intro, ctaText, ctaUrl, footnote }) {
 }
 
 /** Only local development may mock email. Production failures must be visible. */
-export async function sendEmail({ to, subject, html }) {
+export async function sendEmail({ to, subject, html, text }) {
   const recipients = Array.isArray(to) ? to : [to];
   if (process.env.EMAIL_PROVIDER === "brevo") {
     try {
@@ -58,7 +66,8 @@ export async function sendEmail({ to, subject, html }) {
         headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           sender: { name: "HeyFutureJasmine", email: senderEmail },
-          to: recipients.map((email) => ({ email })), subject, htmlContent: html
+          to: recipients.map((email) => ({ email })), subject, htmlContent: html,
+          ...(text ? { textContent: text } : {})
         }),
         signal: AbortSignal.timeout(15000)
       });
@@ -83,7 +92,7 @@ export async function sendEmail({ to, subject, html }) {
     return { mocked: true };
   }
   try {
-    const result = await resend.emails.send({ from: FROM, to: recipients, subject, html });
+    const result = await resend.emails.send({ from: FROM, to: recipients, subject, html, ...(text ? { text } : {}) });
     if (result.error) throw new Error(result.error.message || "Resend rejected the email");
     if (!result.data?.id) throw new Error("Resend did not accept the email");
     return result;
@@ -96,14 +105,17 @@ export async function sendEmail({ to, subject, html }) {
 }
 
 export async function sendVerificationEmail(email, token) {
+  const verificationUrl = `${clientUrl()}/verify-email/${token}`;
   return sendEmail({
     to: email,
     subject: "Verify your Log Pose, nakama",
+    text: `Confirm your email by copying and pasting this address into your browser:\n\n${verificationUrl}\n\nIf you didn't sign up, you can ignore this message.`,
     html: shell({
       heading: "Confirm your email",
       intro: "One tap sets your course. Confirm your email to start sealing treasures.",
       ctaText: "Verify email",
-      ctaUrl: `${clientUrl()}/verify-email/${token}`,
+      ctaUrl: verificationUrl,
+      showDirectUrl: true,
       footnote: "If you didn't sign up, you can ignore this message."
     })
   });
